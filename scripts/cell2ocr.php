@@ -17,10 +17,22 @@ while ($oFile = fgetcsv($oh, 512)) {
         die("{$oJsonFile} not exist!\n");
     }
     $oJson = json_decode(file_get_contents($oJsonFile));
-    if(file_exists("{$path}/text/{$oJson->image_id}.json")) {
+    if (file_exists("{$path}/text/{$oJson->image_id}.json")) {
         continue;
     }
-    $img = imagecreatefrompng($oJson->url);
+    $qPos = strrpos($oJson->url, '.');
+    $fileType = substr($oJson->url, $qPos + 1, 3);
+    switch ($fileType) {
+        case 'jpg':
+            $img = imagecreatefromjpeg($oJson->url);
+            break;
+        case 'png':
+            $img = imagecreatefrompng($oJson->url);
+            break;
+        default:
+            die(">>> {$oJson->url} <<<;");
+    }
+
     if (false !== $img) {
         $translated = array();
         foreach ($oJson->cells AS $x => $line) {
@@ -28,11 +40,19 @@ while ($oFile = fgetcsv($oh, 512)) {
                 $cell = (array) $cell;
                 $croppedImg = imagecrop($img, $cell);
                 if (false !== $croppedImg) {
-                    imagepng($croppedImg, "{$path}/scripts/good.png");
-                    exec("/usr/bin/tesseract {$path}/scripts/good.png /tmp/u -l chi_tra");
-                    if(filesize("/tmp/u.txt") > 0) {
+                    switch ($fileType) {
+                        case 'jpg':
+                            imagejpeg($croppedImg, "{$path}/scripts/good.jpg");
+                            exec("/usr/bin/tesseract {$path}/scripts/good.jpg /tmp/u -l chi_tra");
+                            break;
+                        case 'png':
+                            imagepng($croppedImg, "{$path}/scripts/good.png");
+                            exec("/usr/bin/tesseract {$path}/scripts/good.png /tmp/u -l chi_tra");
+                            break;
+                    }
+                    if (filesize("/tmp/u.txt") > 0) {
                         $text = trim(str_replace(array("\n", ' '), array('', ''), file_get_contents("/tmp/u.txt")));
-                        if(!empty($text)) {
+                        if (!empty($text)) {
                             $translated[$cell['id']] = $text;
                             //file_put_contents("{$path}/text/{$cell['id']}.txt", $text);
                             //copy("{$path}/scripts/good.png", "{$path}/text/{$cell['id']}.png");
@@ -43,7 +63,7 @@ while ($oFile = fgetcsv($oh, 512)) {
                 }
             }
         }
-        if(!empty($translated)) {
+        if (!empty($translated)) {
             file_put_contents("{$path}/text/{$oJson->image_id}.json", json_encode($translated));
         }
     }
