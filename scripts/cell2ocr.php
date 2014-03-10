@@ -17,6 +17,9 @@ while ($oFile = fgetcsv($oh, 512)) {
         die("{$oJsonFile} not exist!\n");
     }
     $oJson = json_decode(file_get_contents($oJsonFile));
+    if(file_exists("{$path}/text/{$oJson->image_id}.json")) {
+        continue;
+    }
     $img = imagecreatefrompng($oJson->url);
     if (false !== $img) {
         $translated = array();
