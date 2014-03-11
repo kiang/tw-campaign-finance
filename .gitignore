@@ -1,4 +1,5 @@
 scripts/pic2linesjson
 .*.swp
 scripts/*.png
+scripts/*.jpg
 nbproject
