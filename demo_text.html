@@ -19,10 +19,15 @@
         </form>
         <ol id="list">
         </ol>
-        <div id="board" style="display: none; position: fixed; left: 10px; top: 10px; width: 800px; height: 600px; background-color: yellow">
+        <div id="board" style="display: none; position: fixed; left: 10px; top: 10px; width: 800px; height: 800px; background-color: yellow">
             <table id="table" border="1" style="float: left"></table>
             <canvas id="img_canvas" width="400" height="300"></canvas>
             <canvas id="canvas" width="400" height="400" style="position: relative; left: 400"></canvas>
+            <div style="float:right; width: 300px;">
+                <div style="float: left; text-align: left; width: 300px">
+                    <span id="canvas_text"></span>
+                </div>
+            </div>
         </div>
         <script>
 
@@ -62,10 +67,18 @@
                 show_data(id);
             });
 
+            var ocr_text;
+
             var show_data = function(id) {
                 var data = files[id];
                 var window_width = $(window).width();
                 var window_height = $(window).height();
+
+                ocr_text = {};
+
+                $.get('text/' + id + '.json', {}, function(ret) {
+                    ocr_text = ret;
+                }, 'json');
 
                 img_data = new Image;
                 img_data.src = data.url;
@@ -85,10 +98,18 @@
                             var tr_dom = $('<tr></tr>');
                             for (var j = 0; j < ret.cross_points.length - 1; j++) {
                                 var td_dom = $('<td></td>');
+                                var cell_id = id + '-' + (j + 1) + '-' + (i + 1);
+                                var cell_text = ocr_text[cell_id];
                                 td_dom.data({
                                     'x': j,
-                                    'y': i
-                                }).text('');
+                                    'y': i,
+                                    'cell-id': cell_id,
+                                    'text': ocr_text[cell_id]
+                                }).text();
+                                if(typeof cell_text === 'string') {
+                                    td_dom.addClass('hasText');
+                                    td_dom.css('background-color', 'green');
+                                }
                                 tr_dom.append(td_dom);
                             }
                             $('#table').append(tr_dom);
@@ -100,8 +121,15 @@
             $('#table').delegate('td', 'mouseover', function() {
                 var x = $(this).data('x');
                 var y = $(this).data('y');
+                if (undefined === ocr_text[$(this).data('cell-id')]) {
+                    $('#canvas_text').text('cell-id: ' + $(this).data('cell-id'));
+                } else {
+                    $('#canvas_text').html('cell-id: ' + $(this).data('cell-id') + '<br />翻譯：' + $(this).data('text'));
+                }
+
 
                 $('#table td').css('background-color', '');
+                $('td.hasText').css('background-color', 'green');
                 $(this).css('background-color', 'red');
 
                 var lefttop = img_info.cross_points[x][y];
