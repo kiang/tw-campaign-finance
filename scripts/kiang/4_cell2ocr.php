@@ -50,7 +50,7 @@ while ($oFile = fgetcsv($oh, 512)) {
             foreach ($line AS $y => $cell) {
                 $cell = (array) $cell;
                 $croppedImg = imagecrop($img, $cell);
-                switch ($y) {
+                switch ($x) {
                     case 1:
                     case 2:
                     case 5:
@@ -61,8 +61,7 @@ while ($oFile = fgetcsv($oh, 512)) {
                     default:
                         $lang = 'chi_tra';
                 }
-
-
+                
                 if (false !== $croppedImg) {
                     switch ($fileType) {
                         case 'jpg':
@@ -78,8 +77,19 @@ while ($oFile = fgetcsv($oh, 512)) {
                         $text = trim(str_replace(array("\n", ' '), array('', ''), file_get_contents("/tmp/u.txt")));
                         if (!empty($text)) {
                             $translated[$cell['id']] = $text;
-                            //file_put_contents("{$path}/text/{$cell['id']}.txt", $text);
-                            //copy("{$path}/scripts/good.png", "{$path}/text/{$cell['id']}.png");
+                            /*
+                            file_put_contents("{$path}/text/{$cell['id']}.txt", $text);
+                            switch ($fileType) {
+                                case 'jpg':
+                                    copy("{$path}/scripts/good.jpg", "{$path}/text/{$cell['id']}.jpg");
+                                    break;
+                                case 'png':
+                                    copy("{$path}/scripts/good.png", "{$path}/text/{$cell['id']}.png");
+                                    break;
+                            }
+                             * 
+                             */
+                            
                         }
                     }
                     unlink('/tmp/u.txt');
