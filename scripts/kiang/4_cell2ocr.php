@@ -50,18 +50,23 @@ while ($oFile = fgetcsv($oh, 512)) {
             foreach ($line AS $y => $cell) {
                 $cell = (array) $cell;
                 $croppedImg = imagecrop($img, $cell);
-                switch ($x) {
-                    case 1:
-                    case 2:
-                    case 5:
-                    case 6:
-                    case 7:
-                        $lang = 'eng';
-                        break;
-                    default:
-                        $lang = 'chi_tra';
+                if ($y == 1) {
+                    $lang = 'chi_tra';
+                } else {
+                    switch ($x) {
+                        case 1:
+                        case 2:
+                        case 5:
+                        case 6:
+                        case 7:
+                            $lang = 'eng';
+                            break;
+                        default:
+                            $lang = 'chi_tra';
+                    }
                 }
-                
+
+
                 if (false !== $croppedImg) {
                     switch ($fileType) {
                         case 'jpg':
@@ -78,18 +83,17 @@ while ($oFile = fgetcsv($oh, 512)) {
                         if (!empty($text)) {
                             $translated[$cell['id']] = $text;
                             /*
-                            file_put_contents("{$path}/text/{$cell['id']}.txt", $text);
-                            switch ($fileType) {
-                                case 'jpg':
-                                    copy("{$path}/scripts/good.jpg", "{$path}/text/{$cell['id']}.jpg");
-                                    break;
-                                case 'png':
-                                    copy("{$path}/scripts/good.png", "{$path}/text/{$cell['id']}.png");
-                                    break;
-                            }
+                              file_put_contents("{$path}/text/{$cell['id']}.txt", $text);
+                              switch ($fileType) {
+                              case 'jpg':
+                              copy("{$path}/scripts/good.jpg", "{$path}/text/{$cell['id']}.jpg");
+                              break;
+                              case 'png':
+                              copy("{$path}/scripts/good.png", "{$path}/text/{$cell['id']}.png");
+                              break;
+                              }
                              * 
                              */
-                            
                         }
                     }
                     unlink('/tmp/u.txt');
