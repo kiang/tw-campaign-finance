@@ -9,7 +9,7 @@
  * The way to remove noise is refered to
  * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=18707
  */
-$path = dirname(dirname(__FILE__));
+$path = dirname(dirname(__DIR__));
 $fh = fopen($path . '/pdf/pdf2jpg.csv', 'w');
 fputcsv($fh, array('id','檔名','頁數','網址','圖寬','圖高'));
 $fileId = 1;

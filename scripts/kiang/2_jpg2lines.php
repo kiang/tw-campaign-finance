@@ -3,8 +3,10 @@
 // 這一隻 script 是將上一層的 list.csv 的圖檔抓下來
 // 並且找出所有線條，將資訊另外儲存一個 json
 //
-class Searcher
-{
+class Searcher {
+
+    var $path = '';
+
     /**
      * 找出所有垂直線和水平線的交點
      * 
@@ -13,8 +15,7 @@ class Searcher
      * @access public
      * @return array 所有交點的二維陣列
      */
-    public function getCrossPoints($verticles, $horizons)
-    {
+    public function getCrossPoints($verticles, $horizons) {
         $points = array();
 
         foreach ($verticles as $i => $vertice_line) {
@@ -46,8 +47,7 @@ class Searcher
 
     protected $line_groups = array();
 
-    public function addLine($group, $r, $theta, $width, $height)
-    {
+    public function addLine($group, $r, $theta, $width, $height) {
         if (!array_key_exists($group, $this->line_groups)) {
             $this->line_groups[$group] = array();
         }
@@ -80,13 +80,12 @@ class Searcher
         $this->line_groups[$group][] = $obj;
     }
 
-    public function countRed($gd, $width, $height, $center_x, $center_y)
-    {
+    public function countRed($gd, $width, $height, $center_x, $center_y) {
         for ($i = 1; true; $i ++) {
             $empty = true;
             $x = $center_x - $i;
             $y = $center_y - $i;
-            foreach (array(array(0,1),array(1,0),array(0,-1),array(-1,0)) as $way) {
+            foreach (array(array(0, 1), array(1, 0), array(0, -1), array(-1, 0)) as $way) {
                 list($x_delta, $y_delta) = $way;
                 for ($j = 0; $j < 2 * $i; $j ++) {
                     $x += $x_delta;
@@ -117,69 +116,25 @@ class Searcher
         return $i;
     }
 
-    public function main($input, $output)
-    {
+    public function main($input) {
         if (!file_exists($input)) {
             throw new Exception("沒有輸入檔");
-        }
-        $showed = array();
-        $id = 1;
-        if (file_exists($output)) {
-            if (!is_file($output)) {
-                throw new Exception("輸出必需要是檔案");
-            }
-            $fp = fopen($output, 'r');
-            $columns = fgetcsv($fp);
-            while ($rows = fgetcsv($fp)) {
-                list($id, $path, $page, $url, $width, $height) = $rows;
-                $showed[$path . '-' . $page] = true;
-            }
-            $id ++;
-            $fp = fopen($output, 'a');
-        } else {
-            if (!file_exists(dirname($output)) or !is_dir(dirname($output))) {
-                throw new Exception("找不到所在資料夾");
-            }
-            $fp = fopen($output, 'w');
-            fputcsv($fp, array(
-                'id',
-                '檔名',
-                '頁數',
-                '網址',
-                '圖寬',
-                '圖高',
-            ));
         }
         $finput = fopen($input, 'r');
         $columns = fgetcsv($finput);
         while ($rows = fgetcsv($finput)) {
-            list($file, $page, $url) = $rows;
-            if ($showed[$file . '-' . $page]) {
-                continue;
-            }
+            list($id, $file, $page, $url, $width, $height) = $rows;
             $this->line_groups = array();
             error_log($url);
-            if (strpos($url, 'png')) {
-                $tmpfile = 'tmp.png';
-                $func = 'imagecreatefrompng';
-            } else {
-                $tmpfile = 'tmp.jpg';
-                $func = 'imagecreatefromjpeg';
-            }
+            $tmpfile = $this->path . '/pdf/tmp.jpg';
+            $func = 'imagecreatefromjpeg';
             
-            $curl = curl_init($url);
-
-            $output = fopen($tmpfile, 'w');
-            curl_setopt($curl, CURLOPT_FILE, $output);
-            curl_exec($curl);
-            curl_close($curl);
-            fclose($output);
+            copy($url, $tmpfile);
 
             // 先把圖讀去 GD
             $gd = $func($tmpfile);
             // 轉灰階
             imagefilter($gd, IMG_FILTER_COLORIZE, 0, 0, 255);
-            list($width, $height) = getimagesize($tmpfile);
 
             $red = imagecolorallocate($gd, 255, 0, 0);
             $green = imagecolorallocate($gd, 0, 255, 0);
@@ -230,7 +185,7 @@ class Searcher
             // 因為遇到的應該是接近水平線
             // 因此以 0度 => 1度 => -1度 => 2度 => -2度 的順序去比對，應該可以最快找到
             $angle_base = null;
-            for ($check_y = $top_y; $check_y < $height; $check_y ++ ) {
+            for ($check_y = $top_y; $check_y < $height; $check_y ++) {
                 $rgb = imagecolorat($gd, $top_x, $check_y);
                 $rgb_r = ($rgb >> 16) & 0xFF;
                 $rgb_g = ($rgb >> 8) & 0xFF;
@@ -243,7 +198,7 @@ class Searcher
                 $boost = 10;
                 $i_limit = is_null($angle_base) ? (90 * $boost) : (5 * $boost);
                 for ($i = 1; $i < $i_limit; $i ++) {
-                    $angle = ($angle_base ?: 0) + floor($i / 2) / $boost * ($i % 2 ? 1 : -1);
+                    $angle = ($angle_base ? : 0) + floor($i / 2) / $boost * ($i % 2 ? 1 : -1);
 
                     // r = y * sinθ+ x * cosθ (為了讓 θ= 0是水平線，所以把 cos, sin 對調
                     $theta = pi() * ($angle + 90) / 180;
@@ -308,17 +263,20 @@ class Searcher
                 $boost = 10;
                 $i_limit = is_null($angle_base) ? (90 * $boost) : (5 * $boost);
                 for ($i = 1; $i < $i_limit; $i ++) {
-                    $angle = ($angle_base ?: 0) + floor($i / 2) / $boost * ($i % 2 ? 1 : -1);
+                    $angle = ($angle_base ? : 0) + floor($i / 2) / $boost * ($i % 2 ? 1 : -1);
 
                     // r = x * cosθ+ y * sinθ (這邊要從垂直線出發)
                     $theta = pi() * $angle / 180;
                     $r = $check_x * cos($theta) + $middle_y * sin($theta);
 
                     $no_point_counter = 0;
-                    for ($y_pos = 1; $y_pos < $height ; $y_pos ++) {
+                    for ($y_pos = 1; $y_pos < $height; $y_pos ++) {
                         $y = floor($middle_y + floor($y_pos / 2) * (($y_pos % 2) ? -1 : 1));
                         $x = floor(($r - $y * sin($theta)) / cos($theta));
                         if ($x < 0 or $x > $width) {
+                            break;
+                        }
+                        if($y < 0 or $y > $height) {
                             break;
                         }
                         $rgb = imagecolorat($gd, floor($x), floor($y));
@@ -371,25 +329,23 @@ class Searcher
                 file_put_contents('failed', "Failed: " . count($cross_points) . " " . $url . "\n", FILE_APPEND);
                 continue;
             }
-            fputcsv($fp, array(
-                $id,
-                $file,
-                $page,
-                $url,
-                $width,
-                $height,
-            ));
             $ret = new stdClass;
             $ret->width = $width;
             $ret->height = $height;
             $ret->horizons = $this->line_groups['horizons'];
             $ret->verticles = $this->line_groups['verticles'];
             $ret->cross_points = $cross_points;
-            file_put_contents(__DIR__ . '/../outputs2/' . $id . '.json', json_encode($ret));
-            $id ++;
+            file_put_contents($this->path . '/pdf/lines/' . $id . '.json', json_encode($ret));
         }
     }
+
+}
+
+$path = dirname(dirname(__DIR__));
+if (!file_exists($path . '/pdf/lines')) {
+    mkdir($path . '/pdf/lines', 0777, true);
 }
 
 $s = new Searcher;
-$s->main(__DIR__ . '/../list.csv', __DIR__ . '/../output2.csv');
+$s->path = $path;
+$s->main($path . '/pdf/pdf2jpg.csv');
