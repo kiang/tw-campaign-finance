@@ -13,9 +13,9 @@
  * height -> height of the cell
  */
 
-$path = dirname(dirname(__FILE__));
+$path = dirname(dirname(__DIR__));
 
-$oh = fopen($path . '/output.csv', 'r');
+$oh = fopen($path . '/output2.csv', 'r');
 $firstLineSkipped = false;
 while ($oFile = fgetcsv($oh, 512)) {
     /*
@@ -25,7 +25,7 @@ while ($oFile = fgetcsv($oh, 512)) {
         $firstLineSkipped = true;
         continue;
     }
-    $oJsonFile = "{$path}/outputs/{$oFile[0]}.json";
+    $oJsonFile = "{$path}/outputs2/{$oFile[0]}.json";
     if (!file_exists($oJsonFile)) {
         die("{$oJsonFile} not exist!\n");
     }
@@ -59,10 +59,10 @@ while ($oFile = fgetcsv($oh, 512)) {
             }
             $imageObj->cells[$numberX][$numberY] = array(
                 'id' => "{$oFile[0]}-{$numberX}-{$numberY}",
-                'x' => $previousLine[$key - 1][1],
-                'y' => $previousLine[$key - 1][0],
-                'width' => ($line[$key][1] - $previousLine[$key - 1][1]),
-                'height' => ($line[$key][0] - $previousLine[$key - 1][0]),
+                'x' => $previousLine[$key - 1][0],
+                'y' => $previousLine[$key - 1][1],
+                'width' => ($line[$key][0] - $previousLine[$key - 1][0]),
+                'height' => ($line[$key][1] - $previousLine[$key - 1][1]),
             );
         }
         $previousLine = $line;
