@@ -3,3 +3,5 @@ scripts/pic2linesjson
 scripts/*.png
 scripts/*.jpg
 nbproject
+*.zip
+pdf/
