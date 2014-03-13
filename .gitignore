@@ -5,3 +5,4 @@ scripts/*.jpg
 nbproject
 *.zip
 pdf/
+tmp/
