@@ -127,12 +127,12 @@ class Searcher {
             $this->line_groups = array();
             error_log($url);
             $tmpfile = $this->path . '/pdf/tmp.jpg';
-            $func = 'imagecreatefromjpeg';
             
             copy($url, $tmpfile);
 
             // 先把圖讀去 GD
-            $gd = $func($tmpfile);
+            $gd = imagecreatefromjpeg($tmpfile);
+            
             // 轉灰階
             imagefilter($gd, IMG_FILTER_COLORIZE, 0, 0, 255);
 
@@ -169,15 +169,10 @@ class Searcher {
                 error_log($y . ' ' . $count);
 
                 if ($count > $max_count) {
-                    if ($max_point) {
-                        imagefill($gd, $max_point[0], $max_point[1], $white);
-                    }
                     $max_count = $count;
                     $max_point = array($x, $y);
-                    imagefill($gd, $x, $y, $green);
-                } else {
-                    imagefill($gd, $x, $y, $white);
                 }
+                imagefill($gd, $x, $y, $green);
             }
 
             list($top_x, $top_y) = $max_point;
@@ -223,8 +218,8 @@ class Searcher {
                                 $min_xy = array($x, $y);
                             }
                         }
-                        // 連續超過 20 點找不到東西就表示這角度不對
-                        if ($no_point_counter ++ > 20) {
+                        // 連續超過 50 點找不到東西就表示這角度不對
+                        if ($no_point_counter ++ > 50) {
                             break;
                         }
                     }
@@ -249,6 +244,7 @@ class Searcher {
             // 所以從 ($top_y + $bottom_y) / 2 高度的地方從左射出一條水平射線
             // 理論上就可以對到所有的垂直線..那就跟上面做法一樣了
             $angle_base = null;
+            imagepng($gd, $this->path . '/pdf/lines/' . $id . '.png');
             $middle_y = floor(($top_y + $bottom_y) / 2);
             for ($check_x = 0; $check_x < $width; $check_x ++) {
                 $rgb = imagecolorat($gd, $check_x, $middle_y);
@@ -273,13 +269,13 @@ class Searcher {
                     for ($y_pos = 1; $y_pos < $height; $y_pos ++) {
                         $y = floor($middle_y + floor($y_pos / 2) * (($y_pos % 2) ? -1 : 1));
                         $x = floor(($r - $y * sin($theta)) / cos($theta));
-                        if ($x < 0 or $x > $width) {
+                        if ($x <= 0 or $x >= $width) {
                             break;
                         }
-                        if($y < 0 or $y > $height) {
+                        if($y <= 0 or $y >= $height) {
                             break;
                         }
-                        $rgb = imagecolorat($gd, floor($x), floor($y));
+                        $rgb = imagecolorat($gd, $x, $y);
                         $rgb_r = ($rgb >> 16) & 0xFF;
                         $rgb_g = ($rgb >> 8) & 0xFF;
                         $rgb_b = $rgb & 0xFF;
@@ -291,8 +287,8 @@ class Searcher {
                                 $min_xy = array($x, $y);
                             }
                         }
-                        // 連續超過 20 點找不到東西就表示這角度不對
-                        if ($no_point_counter ++ > 20) {
+                        // 連續超過 50 點找不到東西就表示這角度不對
+                        if ($no_point_counter ++ > 50) {
                             break;
                         }
                     }
@@ -324,7 +320,7 @@ class Searcher {
                     imageellipse($gd, $cross_point[0], $cross_point[1], 20, 20, $red);
                 }
             }
-            imagepng($gd, 'output.png');
+            imagepng($gd, $this->path . '/pdf/lines/' . $id . '.png');
             if (count($cross_points) != 10) {
                 file_put_contents('failed', "Failed: " . count($cross_points) . " " . $url . "\n", FILE_APPEND);
                 continue;
