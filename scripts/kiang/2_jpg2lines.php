@@ -136,7 +136,7 @@ class Searcher {
             list($id, $file, $page, $url, $width, $height) = $rows;
             $this->line_groups = array();
             error_log($url);
-            $tmpfile = 'tmp.jpg';
+            $tmpfile = $this->path . '/pdf/tmp.jpg';
             
             copy($url, $tmpfile);
             
@@ -343,7 +343,7 @@ class Searcher {
             //imageline($gd, 0, $middle_y, $width, $middle_y, $red);
 
             if (!$this->line_groups['verticles']) {
-                file_put_contents('failed', "Failed: 0 " . $url . "\n", FILE_APPEND);
+                file_put_contents($this->path . '/pdf/failed', "Failed: 0 " . $url . "\n", FILE_APPEND);
                 continue;
             }
             $cross_points = $this->getCrossPoints($this->line_groups['verticles'], $this->line_groups['horizons']);
@@ -354,9 +354,9 @@ class Searcher {
             }
             $cross_points = $this->scaleCrossPoints($cross_points, 1.0 / $scale);
 
-            imagepng($gd, 'output.png');
+            imagepng($gd, $this->path . '/pdf/output.png');
             if (count($cross_points) != 10) {
-                file_put_contents('failed', "Failed: " . count($cross_points) . " " . $url . "\n", FILE_APPEND);
+                file_put_contents($this->path . '/pdf/failed', "Failed: " . count($cross_points) . " " . $url . "\n", FILE_APPEND);
                 continue;
             }
             $width = imagesx($gd_ori);
@@ -368,7 +368,6 @@ class Searcher {
             $ret->verticles = $this->line_groups['verticles'];
             $ret->cross_points = $cross_points;
             file_put_contents($this->path . '/pdf/lines/' . $id . '.json', json_encode($ret));
-            $id ++;
         }
     }
 
