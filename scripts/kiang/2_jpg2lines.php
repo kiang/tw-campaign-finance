@@ -5,8 +5,6 @@
 //
 class Searcher {
 
-    var $path = '';
-
     /**
      * 找出所有垂直線和水平線的交點
      * 
@@ -43,6 +41,20 @@ class Searcher {
         }
 
         return $points;
+    }
+
+    public function scaleCrossPoints($i_j_points, $scale) {
+        $ret = array();
+        foreach ($i_j_points as $i => $j_points) {
+            $ret[$i] = array();
+            foreach ($j_points as $j => $points) {
+                $ret[$i][$j] = array(
+                    floor($points[0] * $scale),
+                    floor($points[1] * $scale),
+                );
+            }
+        }
+        return $ret;
     }
 
     protected $line_groups = array();
@@ -82,7 +94,7 @@ class Searcher {
 
     public function countRed($gd, $width, $height, $center_x, $center_y) {
         for ($i = 1; true; $i ++) {
-            $empty = true;
+            $over = true;
             $x = $center_x - $i;
             $y = $center_y - $i;
             foreach (array(array(0, 1), array(1, 0), array(0, -1), array(-1, 0)) as $way) {
@@ -99,17 +111,15 @@ class Searcher {
                     }
 
                     $rgb = imagecolorat($gd, $x, $y);
-                    $rgb_r = ($rgb >> 16) & 0xFF;
-                    $rgb_g = ($rgb >> 8) & 0xFF;
-                    $rgb_b = $rgb & 0xFF;
-                    if ($rgb_r == 255 and $rgb_g == 0 and $rgb_b == 0) {
-                        $empty = false;
+                    $colors = imagecolorsforindex($gd, $rgb);
+                    if ($colors['red'] == 255 and $colors['green'] == 0 and $colors['blue'] == 0) {
+                        $over = false;
                         break;
                     }
                 }
             }
 
-            if ($empty) {
+            if ($over) {
                 break;
             }
         }
@@ -126,15 +136,40 @@ class Searcher {
             list($id, $file, $page, $url, $width, $height) = $rows;
             $this->line_groups = array();
             error_log($url);
-            $tmpfile = $this->path . '/pdf/tmp.jpg';
+            $tmpfile = 'tmp.jpg';
             
             copy($url, $tmpfile);
-
-            // 先把圖讀去 GD
-            $gd = imagecreatefromjpeg($tmpfile);
             
-            // 轉灰階
-            imagefilter($gd, IMG_FILTER_COLORIZE, 0, 0, 255);
+            error_log('convert done');
+            $gd_ori = imagecreatefromjpeg($tmpfile);
+            error_log('open done');
+
+            // 先縮到最大邊 2000 ，加快速度
+            $height = imagesy($gd_ori);
+            $width = imagesx($gd_ori);
+            $scale = 2000.0 / max($width, $height);
+            $gd = imagecreatetruecolor(floor($width * $scale), floor($height * $scale));
+            imagecopyresized($gd, $gd_ori, 0, 0, 0, 0, floor($width * $scale), floor($height * $scale), $width, $height);
+
+            // 轉成只有黑跟白
+            for ($x = imagesx($gd); $x--;) {
+                for ($y = imagesy($gd); $y--;) {
+                    $rgb = imagecolorat($gd, $x, $y);
+                    $colors = imagecolorsforindex($gd, $rgb);
+                    $gray = ($colors['red'] + $colors['green'] + $colors['blue']) / 3;
+                    if ($colors['alpha'] == 127 or $gray < 127) {
+                        imagesetpixel($gd, $x, $y, 0x000000);
+                    } else {
+                        imagesetpixel($gd, $x, $y, 0xFFFFFF);
+                    }
+                }
+            }
+
+
+
+            error_log('filter done');
+            $width = imagesx($gd);
+            $height = imagesy($gd);
 
             $red = imagecolorallocate($gd, 255, 0, 0);
             $green = imagecolorallocate($gd, 0, 255, 0);
@@ -150,14 +185,12 @@ class Searcher {
             for ($i = 0; $i < $height; $i ++) {
                 $y = $i;
                 $rgb = imagecolorat($gd, $x, $y);
-                $rgb_r = ($rgb >> 16) & 0xFF;
-                $rgb_g = ($rgb >> 8) & 0xFF;
-                $rgb_b = $rgb & 0xFF;
+                $colors = imagecolorsforindex($gd, $rgb);
 
-                if ($rgb_r == 255 and $rgb_g == 255 and $rgb_b == 255) {
+                if ($colors['red'] == 255 and $colors['green'] == 255 and $colors['blue'] == 255) {
                     continue;
                 }
-                if ($rgb_r == 0 and $rgb_g == 255 and $rgb_b == 0) {
+                if ($colors['red'] == 0 and $colors['green'] == 255 and $colors['blue'] == 0) {
                     continue;
                 }
 
@@ -169,10 +202,15 @@ class Searcher {
                 error_log($y . ' ' . $count);
 
                 if ($count > $max_count) {
+                    if ($max_point) {
+                        imagefill($gd, $max_point[0], $max_point[1], $white);
+                    }
                     $max_count = $count;
                     $max_point = array($x, $y);
+                    imagefill($gd, $x, $y, $green);
+                } else {
+                    imagefill($gd, $x, $y, $white);
                 }
-                imagefill($gd, $x, $y, $green);
             }
 
             list($top_x, $top_y) = $max_point;
@@ -182,10 +220,8 @@ class Searcher {
             $angle_base = null;
             for ($check_y = $top_y; $check_y < $height; $check_y ++) {
                 $rgb = imagecolorat($gd, $top_x, $check_y);
-                $rgb_r = ($rgb >> 16) & 0xFF;
-                $rgb_g = ($rgb >> 8) & 0xFF;
-                $rgb_b = $rgb & 0xFF;
-                if ($rgb_r != 0 or $rgb_g != 255 or $rgb_b != 0) {
+                $colors = imagecolorsforindex($gd, $rgb);
+                if ($colors['red'] != 0 or $colors['green'] != 255 or $colors['blue'] != 0) {
                     continue;
                 }
                 $bottom_y = $check_y;
@@ -199,27 +235,28 @@ class Searcher {
                     $theta = pi() * ($angle + 90) / 180;
                     $r = $check_y * sin($theta) + $top_x * cos($theta);
 
-                    $no_point_counter = 0;
+                    $no_point_counter_a = $no_point_counter_b = 0;
                     for ($x_pos = 1; $x_pos < $width; $x_pos ++) {
                         $x = $top_x + floor($x_pos / 2) * (($x_pos % 2) ? -1 : 1);
                         $y = ($r - $x * cos($theta)) / sin($theta);
                         if ($y < 0 or $y > $height) {
                             break;
                         }
-                        $rgb = imagecolorat($gd, floor($x), floor($y));
-                        $rgb_r = ($rgb >> 16) & 0xFF;
-                        $rgb_g = ($rgb >> 8) & 0xFF;
-                        $rgb_b = $rgb & 0xFF;
-                        if ($rgb_r == 0 and $rgb_g == 255 and $rgb_b == 0) {
-                            $no_point_counter = 0;
-                            if ($x_pos % 2) {
-                                $max_xy = array($x, $y);
-                            } else {
-                                $min_xy = array($x, $y);
+                        foreach (range(2, -2) as $range) {
+                            $rgb = imagecolorat($gd, floor($x), floor($y + $range));
+                            $colors = imagecolorsforindex($gd, $rgb);
+                            if ($colors['red'] == 0 and $colors['green'] == 255 and $colors['blue'] == 0) {
+                                if ($x_pos % 2) {
+                                    $no_point_counter_a = 0;
+                                    $max_xy = array($x, $y);
+                                } else {
+                                    $no_point_counter_b = 0;
+                                    $min_xy = array($x, $y);
+                                }
                             }
                         }
-                        // 連續超過 50 點找不到東西就表示這角度不對
-                        if ($no_point_counter ++ > 50) {
+                        // 連續超過 20 點找不到東西就表示這角度不對
+                        if ($no_point_counter_a ++ > 20 or $no_point_counter_b ++ > 20) {
                             break;
                         }
                     }
@@ -244,14 +281,11 @@ class Searcher {
             // 所以從 ($top_y + $bottom_y) / 2 高度的地方從左射出一條水平射線
             // 理論上就可以對到所有的垂直線..那就跟上面做法一樣了
             $angle_base = null;
-            imagepng($gd, $this->path . '/pdf/lines/' . $id . '.png');
             $middle_y = floor(($top_y + $bottom_y) / 2);
             for ($check_x = 0; $check_x < $width; $check_x ++) {
                 $rgb = imagecolorat($gd, $check_x, $middle_y);
-                $rgb_r = ($rgb >> 16) & 0xFF;
-                $rgb_g = ($rgb >> 8) & 0xFF;
-                $rgb_b = $rgb & 0xFF;
-                if ($rgb_r != 0 or $rgb_g != 255 or $rgb_b != 0) {
+                $colors = imagecolorsforindex($gd, $rgb);
+                if ($colors['red'] != 0 or $colors['green'] != 255 or $colors['blue'] != 0) {
                     continue;
                 }
 
@@ -265,30 +299,28 @@ class Searcher {
                     $theta = pi() * $angle / 180;
                     $r = $check_x * cos($theta) + $middle_y * sin($theta);
 
-                    $no_point_counter = 0;
+                    $no_point_counter_a = $no_point_counter_b = 0;
                     for ($y_pos = 1; $y_pos < $height; $y_pos ++) {
                         $y = floor($middle_y + floor($y_pos / 2) * (($y_pos % 2) ? -1 : 1));
                         $x = floor(($r - $y * sin($theta)) / cos($theta));
-                        if ($x <= 0 or $x >= $width) {
+                        if ($x < 0 or $x > $width) {
                             break;
                         }
-                        if($y <= 0 or $y >= $height) {
-                            break;
-                        }
-                        $rgb = imagecolorat($gd, $x, $y);
-                        $rgb_r = ($rgb >> 16) & 0xFF;
-                        $rgb_g = ($rgb >> 8) & 0xFF;
-                        $rgb_b = $rgb & 0xFF;
-                        if ($rgb_r == 0 and $rgb_g == 255 and $rgb_b == 0) {
-                            $no_point_counter = 0;
-                            if ($y_pos % 2) {
-                                $max_xy = array($x, $y);
-                            } else {
-                                $min_xy = array($x, $y);
+                        foreach (range(3, 0, -3) as $range) {
+                            $rgb = imagecolorat($gd, floor($x + $range), floor($y));
+                            $colors = imagecolorsforindex($gd, $rgb);
+                            if ($colors['red'] == 0 and $colors['green'] == 255 and $colors['blue'] == 0) {
+                                if ($y_pos % 2) {
+                                    $no_point_counter_a = 0;
+                                    $max_xy = array($x, $y);
+                                } else {
+                                    $no_point_counter_b = 0;
+                                    $min_xy = array($x, $y);
+                                }
                             }
                         }
-                        // 連續超過 50 點找不到東西就表示這角度不對
-                        if ($no_point_counter ++ > 50) {
+                        // 連續超過 20 點找不到東西就表示這角度不對
+                        if ($no_point_counter_a ++ > 20 or $no_point_counter_b ++ > 20) {
                             break;
                         }
                     }
@@ -320,11 +352,15 @@ class Searcher {
                     imageellipse($gd, $cross_point[0], $cross_point[1], 20, 20, $red);
                 }
             }
-            imagepng($gd, $this->path . '/pdf/lines/' . $id . '.png');
+            $cross_points = $this->scaleCrossPoints($cross_points, 1.0 / $scale);
+
+            imagepng($gd, 'output.png');
             if (count($cross_points) != 10) {
                 file_put_contents('failed', "Failed: " . count($cross_points) . " " . $url . "\n", FILE_APPEND);
                 continue;
             }
+            $width = imagesx($gd_ori);
+            $height = imagesy($gd_ori);
             $ret = new stdClass;
             $ret->width = $width;
             $ret->height = $height;
@@ -332,16 +368,12 @@ class Searcher {
             $ret->verticles = $this->line_groups['verticles'];
             $ret->cross_points = $cross_points;
             file_put_contents($this->path . '/pdf/lines/' . $id . '.json', json_encode($ret));
+            $id ++;
         }
     }
 
 }
-
 $path = dirname(dirname(__DIR__));
-if (!file_exists($path . '/pdf/lines')) {
-    mkdir($path . '/pdf/lines', 0777, true);
-}
-
 $s = new Searcher;
 $s->path = $path;
 $s->main($path . '/pdf/pdf2jpg.csv');
