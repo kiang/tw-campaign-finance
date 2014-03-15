@@ -33,7 +33,7 @@
 
             var files = {};
 
-            $.get('pdf/pdf2jpg.csv', function(ret) {
+            $.get('output2.csv', function(ret) {
                 var lines = ret.split("\n");
                 $.each(lines.slice(1), function(i, line) {
                     if (line === '') {
@@ -80,17 +80,16 @@
                     ocr_text = ret;
                 }, 'json');
                 
-                img_src = location.href.replace('demo_text.html', '') + data.url.replace('/home/kiang/public_html/tw-campaign-finance/', '');
                 img_data = new Image;
-                img_data.src = img_src;
+                img_data.src = data.url;
                 img_data.onload = function() {
                     $('#img_canvas').css({
-                        'background': 'url(' + img_src + ')',
+                        'background': 'url(' + data.url + ')',
                         'background-size': '400px 300px',
                         'width': '400px',
                         'height': '300px'
                     });
-                    $.get('pdf/lines/' + id + '.json', function(ret) {
+                    $.get('outputs2/' + id + '.json', function(ret) {
                         img_info = ret;
                         $('#board').show();
                         $('#table').empty();
