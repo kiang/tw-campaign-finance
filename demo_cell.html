@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>政治獻金</title>
+        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.2.2/css/bootstrap.css">
+    </head>
+    <body>
+        <form id="input">
+            ID: <input type="text" name="text" id="documentId"> <input type="submit" value="顯示" />
+        </form>
+        <ul id="listInfo">
+        </ul>
+        <div id="listCell">
+        </div>
+        <script>
+            $(function() {
+                $('form#input').submit(function() {
+                    $('ul#listInfo').empty();
+                    $('div#listCell').empty();
+                    var documentId = $('input#documentId').val();
+                    $.get('cells/' + documentId + '.json', {}, function(ret) {
+                        ret['url'] = ret['url'].replace('http://pic.pimg.tw/', 'http://ext.pimg.tw/');
+                        var imgData = new Image;
+                        imgData.src = ret['url'];
+                        for (k in ret['cells']) {
+                            for (c in ret['cells'][k]) {
+                                var row = $('<div class="row"></div>');
+                                var cellHtml = '<div class="span4 offset1">';
+                                var cellImg = $('<div class="span4"></div>');
+                                var cellImgSprite = $('<div></div>');
+                                for (i in ret['cells'][k][c]) {
+                                    cellHtml += i + ':' + ret['cells'][k][c][i] + '<br />';
+                                }
+                                cellHtml += '</div>';
+                                cellImgSprite.width(ret['cells'][k][c]['width']).height(ret['cells'][k][c]['height'])
+                                        .css('border', '1px solid black')
+                                        .css('background-image', 'url(\'' + ret['url'] + '\')')
+                                        .css('background-position', '-' + ret['cells'][k][c]['x'] + 'px -' + ret['cells'][k][c]['y'] + 'px');
+                                cellImg.append(cellImgSprite);
+                                row.append(cellHtml);
+                                row.append(cellImg);
+                                $('div#listCell').append(row);
+                            }
+                        }
+                        for (k in ret) {
+                            if (k !== 'cells') {
+                                $('ul#listInfo').append($('<li></li>').text(k + ': ' + ret[k]));
+                            }
+                        }
+
+                    }, 'json');
+                    return false;
+                });
+            });
+        </script>
+    </body>
+</html>
