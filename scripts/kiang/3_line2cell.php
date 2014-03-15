@@ -58,9 +58,9 @@ while ($oFile = fgetcsv($oh, 512)) {
                 $imageObj->cells[$numberX] = array();
             }
             $imageObj->cells[$numberX][$numberY] = array(
-                'id' => "{$oFile[0]}-{$numberX}-{$numberY}",
-                'x' => $previousLine[$key - 1][1],
-                'y' => $previousLine[$key - 1][0],
+                'id' => "{$oFile[0]}-{$numberY}-{$numberX}",
+                'x' => $previousLine[$key - 1][0],
+                'y' => $previousLine[$key - 1][1],
                 'width' => ($line[$key][0] - $previousLine[$key - 1][0]),
                 'height' => ($line[$key][1] - $previousLine[$key - 1][1]),
             );
