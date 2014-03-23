@@ -65,5 +65,6 @@ foreach (glob($path . '/pdf/documents-export-2014-03-18/*/*/*.pdf') AS $file) {
         $endPage = $page + 1;
         exec("java -cp /usr/share/java/commons-logging.jar:/usr/share/java/fontbox.jar:/usr/share/java/pdfbox.jar org.apache.pdfbox.PDFBox ExtractText -startPage {$page} -endPage {$endPage} {$file} tmp.txt");
         copy('tmp.txt', $path . "/text/{$fileRefs[$fileName][$pageInFile]}.txt");
+        unlink('tmp.txt');
     }
 }
