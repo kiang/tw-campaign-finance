@@ -33,7 +33,7 @@
 
             var files = {};
 
-            $.get('output.csv', function(ret) {
+            $.get('output2.csv', function(ret) {
                 var lines = ret.split("\n");
                 $.each(lines.slice(1), function(i, line) {
                     if (line === '') {
@@ -76,10 +76,10 @@
 
                 ocr_text = {};
 
-                $.get('text/' + id + '.json', {}, function(ret) {
+                $.get('cells-text/' + id + '.json', {}, function(ret) {
                     ocr_text = ret;
                 }, 'json');
-
+                
                 img_data = new Image;
                 img_data.src = data.url;
                 img_data.onload = function() {
@@ -89,7 +89,7 @@
                         'width': '400px',
                         'height': '300px'
                     });
-                    $.get('outputs/' + id + '.json', function(ret) {
+                    $.get('outputs2/' + id + '.json', function(ret) {
                         img_info = ret;
                         $('#board').show();
                         $('#table').empty();
@@ -98,7 +98,7 @@
                             var tr_dom = $('<tr></tr>');
                             for (var j = 0; j < ret.cross_points.length - 1; j++) {
                                 var td_dom = $('<td></td>');
-                                var cell_id = id + '-' + (j + 1) + '-' + (i + 1);
+                                var cell_id = id + '-' + (i + 1) + '-' + (j + 1);
                                 var cell_text = ocr_text[cell_id];
                                 td_dom.data({
                                     'x': j,
@@ -134,8 +134,8 @@
 
                 var lefttop = img_info.cross_points[x][y];
                 var rightdown = img_info.cross_points[x + 1][y + 1];
-                var source_width = parseInt(rightdown[1] - lefttop[1]);
-                var source_height = parseInt(rightdown[0] - lefttop[0]);
+                var source_width = parseInt(rightdown[0] - lefttop[0]);
+                var source_height = parseInt(rightdown[1] - lefttop[1]);
                 var target_width = (source_width > source_height) ? 400 : Math.floor(400 * source_width / source_height);
                 var target_height = (source_height > source_width) ? 400 : Math.floor(400 * source_height / source_width);
 
@@ -144,17 +144,17 @@
                 img_context.beginPath();
                 img_context.strokeStyle = 'red';
                 img_context.rect(
-                        Math.floor(lefttop[1] * 400 / img_info.width),
-                        Math.floor(lefttop[0] * 300 / img_info.height),
-                        Math.floor((rightdown[1] - lefttop[1]) * 400 / img_info.width),
-                        Math.floor((rightdown[0] - lefttop[0]) * 300 / img_info.height)
+                        Math.floor(lefttop[0] * 400 / img_info.width),
+                        Math.floor(lefttop[1] * 300 / img_info.height),
+                        Math.floor((rightdown[0] - lefttop[0]) * 400 / img_info.width),
+                        Math.floor((rightdown[1] - lefttop[1]) * 300 / img_info.height)
                         );
                 img_context.stroke();
                 $('#canvas')[0].getContext('2d').clearRect(0, 0, 400, 400);
                 $('#canvas')[0].getContext('2d').drawImage(
                         img_data,
-                        lefttop[1], // source_x
-                        lefttop[0], // source_y
+                        lefttop[0], // source_x
+                        lefttop[1], // source_y
                         source_width, // source_width
                         source_height, // source_height
                         0, // target_x
