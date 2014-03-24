@@ -76,7 +76,7 @@
 
                 ocr_text = {};
 
-                $.get('text/' + id + '.json', {}, function(ret) {
+                $.get('cells-text/' + id + '.json', {}, function(ret) {
                     ocr_text = ret;
                 }, 'json');
                 
