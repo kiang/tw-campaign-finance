@@ -50,12 +50,14 @@ while ($oFile = fgetcsv($oh, 512)) {
     }
     $cellText = array();
     while ($line = fgetcsv($fh, 512)) {
+        $textPushed = false;
         foreach ($cellPolygons AS $cellId => $cellPolygon) {
-            if ($line[1] >= $cellPolygon['x1'] && $line[1] <= $cellPolygon['x2'] && $line[2] >= $cellPolygon['y1'] && $line[2] <= $cellPolygon['y2']) {
+            if (false === $textPushed && $line[1] >= $cellPolygon['x1'] && $line[1] <= $cellPolygon['x2'] && $line[2] >= $cellPolygon['y1'] && $line[2] <= $cellPolygon['y2']) {
                 if (!isset($cellText[$cellId])) {
                     $cellText[$cellId] = '';
                 }
                 $cellText[$cellId] .= $line[0];
+                $textPushed = true;
             }
         }
     }
