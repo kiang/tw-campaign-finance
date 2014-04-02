@@ -135,6 +135,12 @@ class Searcher {
         fgetcsv($finput); //skip first line
         while ($rows = fgetcsv($finput)) {
             list($id, $file, $page, $url, $width, $height) = $rows;
+            if(file_exists($this->path . '/pdf/lines/' . $id . '.t')) {
+                //skip files in processing
+                continue;
+            } else {
+                file_put_contents($this->path . '/pdf/lines/' . $id . '.t', '1');
+            }
             $this->line_groups = array();
             
             $gd_ori = imagecreatefromjpeg($url);
@@ -203,6 +209,11 @@ class Searcher {
                 } else {
                     imagefill($gd, $x, $y, $white);
                 }
+            }
+            
+            if(empty($max_point)) {
+                //略過找不到交點的圖片
+                continue;
             }
 
             list($top_x, $top_y) = $max_point;
