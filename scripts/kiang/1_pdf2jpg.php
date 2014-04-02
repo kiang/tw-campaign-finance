@@ -1,4 +1,5 @@
 <?php
+
 /*
  * download all pdf files into ../pdf/ and then execute this command,
  * then you should expect:
@@ -11,7 +12,7 @@
  */
 $path = dirname(dirname(__DIR__));
 $fh = fopen($path . '/pdf/pdf2jpg.csv', 'w');
-fputcsv($fh, array('id','檔名','頁數','網址','圖寬','圖高'));
+fputcsv($fh, array('id', '檔名', '頁數', '網址', '圖寬', '圖高'));
 $fileId = 1;
 foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
     $pathinfo = pathinfo($file);
@@ -25,19 +26,35 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
             exec("convert {$jpg} -morphology thicken '1x3>:1,0,1' {$jpg}");
             exec("convert {$jpg} -morphology thicken '1x3>:1,0,1' {$jpg}");
             $size = getimagesize($jpg);
+            if ($size[0] < $size[1]) {
+                $source = imagecreatefromjpeg($jpg);
+                $rotate = imagerotate($source, 270, 0);
+                imagejpeg($rotate, $jpg);
+                $tmp = $size[1];
+                $size[1] = $size[0];
+                $size[0] = $tmp;
+            }
             exec("mv {$jpg} {$pathinfo['dirname']}/");
             $dashPos = strrpos($jpg, '-');
             $dotPos = strpos($jpg, '.', $dashPos);
             $pageNumber = substr($jpg, $dashPos + 1, $dotPos - $dashPos - 1);
-            fputcsv($fh, array($fileId++,substr($file, 48),$pageNumber,$jpg,$size[0],$size[1]));
+            fputcsv($fh, array($fileId++, substr($file, 48), $pageNumber, $jpg, $size[0], $size[1]));
         }
     } else {
         foreach (glob("{$pathinfo['dirname']}/{$pathinfo['filename']}-*.jpg") AS $jpg) {
             $size = getimagesize($jpg);
+            if ($size[0] < $size[1]) {
+                $source = imagecreatefromjpeg($jpg);
+                $rotate = imagerotate($source, 270, 0);
+                imagejpeg($rotate, $jpg);
+                $tmp = $size[1];
+                $size[1] = $size[0];
+                $size[0] = $tmp;
+            }
             $dashPos = strrpos($jpg, '-');
             $dotPos = strpos($jpg, '.', $dashPos);
             $pageNumber = substr($jpg, $dashPos + 1, $dotPos - $dashPos - 1);
-            fputcsv($fh, array($fileId++,substr($file, 48),$pageNumber,$jpg,$size[0],$size[1]));
+            fputcsv($fh, array($fileId++, substr($file, 48), $pageNumber, $jpg, $size[0], $size[1]));
         }
     }
 }
