@@ -144,7 +144,7 @@ class Searcher {
             $this->line_groups = array();
             
             $gd_ori = imagecreatefromjpeg($url);
-            error_log('open done');
+            error_log('open done - ' . $id);
 
             // 先縮到最大邊 2000 ，加快速度
             $scale = 2000.0 / max($width, $height);
