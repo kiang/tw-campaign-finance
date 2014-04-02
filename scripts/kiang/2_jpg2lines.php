@@ -130,23 +130,17 @@ class Searcher {
         if (!file_exists($input)) {
             throw new Exception("沒有輸入檔");
         }
+        
         $finput = fopen($input, 'r');
-        $columns = fgetcsv($finput);
+        fgetcsv($finput); //skip first line
         while ($rows = fgetcsv($finput)) {
             list($id, $file, $page, $url, $width, $height) = $rows;
             $this->line_groups = array();
-            error_log($url);
-            $tmpfile = $this->path . '/pdf/tmp.jpg';
             
-            copy($url, $tmpfile);
-            
-            error_log('convert done');
-            $gd_ori = imagecreatefromjpeg($tmpfile);
+            $gd_ori = imagecreatefromjpeg($url);
             error_log('open done');
 
             // 先縮到最大邊 2000 ，加快速度
-            $height = imagesy($gd_ori);
-            $width = imagesx($gd_ori);
             $scale = 2000.0 / max($width, $height);
             $gd = imagecreatetruecolor(floor($width * $scale), floor($height * $scale));
             imagecopyresized($gd, $gd_ori, 0, 0, 0, 0, floor($width * $scale), floor($height * $scale), $width, $height);
@@ -164,8 +158,6 @@ class Searcher {
                     }
                 }
             }
-
-
 
             error_log('filter done');
             $width = imagesx($gd);
@@ -354,7 +346,7 @@ class Searcher {
             }
             $cross_points = $this->scaleCrossPoints($cross_points, 1.0 / $scale);
 
-            imagepng($gd, $this->path . '/pdf/output.png');
+            //imagepng($gd, $this->path . '/pdf/output.png');
             if (count($cross_points) != 10) {
                 file_put_contents($this->path . '/pdf/failed', "Failed: " . count($cross_points) . " " . $url . "\n", FILE_APPEND);
                 continue;
@@ -372,7 +364,11 @@ class Searcher {
     }
 
 }
+
 $path = dirname(dirname(__DIR__));
 $s = new Searcher;
 $s->path = $path;
+if(!file_exists($s->path . '/pdf/lines')) {
+    mkdir($s->path . '/pdf/lines', 0777, true);
+}
 $s->main($path . '/pdf/pdf2jpg.csv');
