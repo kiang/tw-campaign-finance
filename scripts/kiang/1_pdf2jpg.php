@@ -21,8 +21,10 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
     $pathinfo['filename'] = str_replace(array(' ', '(', ')'), array('-', '', ''), $pathinfo['filename']);
     $firstTargetFile = "{$pathinfo['dirname']}/{$pathinfo['filename']}-1.jpg";
     if (!file_exists($firstTargetFile)) {
+        error_log("Extracting images from {$file}");
         exec("gs -dNOPAUSE -sDEVICE=jpeg -sOutputFile={$pathinfo['filename']}-%d.jpg -dJPEGQ=100 -r300x300 -q {$file} -c quit");
         foreach (glob($path . "/{$pathinfo['filename']}-*") AS $jpg) {
+            exec("cp {$jpg} {$pathinfo['dirname']}/");
             exec("convert {$jpg} -morphology thicken '1x3>:1,0,1' {$jpg}");
             exec("convert {$jpg} -morphology thicken '1x3>:1,0,1' {$jpg}");
             $size = getimagesize($jpg);
@@ -34,12 +36,13 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
                 $size[1] = $size[0];
                 $size[0] = $tmp;
             }
-            exec("mv {$jpg} {$pathinfo['dirname']}/");
             $dashPos = strrpos($jpg, '-');
             $dotPos = strpos($jpg, '.', $dashPos);
             $pageNumber = substr($jpg, $dashPos + 1, $dotPos - $dashPos - 1);
+            exec("mv {$jpg} {$pathinfo['dirname']}/{$pathinfo['filename']}-{$pageNumber}_l.jpg");
             fputcsv($fh, array($fileId++, substr($file, 48), $pageNumber, $jpg, $size[0], $size[1]));
         }
+        error_log("Finished extracting images from {$file}");
     } else {
         foreach (glob("{$pathinfo['dirname']}/{$pathinfo['filename']}-*.jpg") AS $jpg) {
             $size = getimagesize($jpg);
