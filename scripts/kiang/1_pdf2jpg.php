@@ -40,7 +40,7 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
             $dotPos = strpos($jpg, '.', $dashPos);
             $pageNumber = substr($jpg, $dashPos + 1, $dotPos - $dashPos - 1);
             exec("mv {$jpg} {$pathinfo['dirname']}/{$pathinfo['filename']}-{$pageNumber}_l.jpg");
-            fputcsv($fh, array($fileId++, substr($file, 48), $pageNumber, $jpg, $size[0], $size[1]));
+            fputcsv($fh, array($fileId++, substr($file, 48), $pageNumber, "{$pathinfo['dirname']}/{$jpg}", $size[0], $size[1]));
         }
         error_log("Finished extracting images from {$file}");
     } else {
