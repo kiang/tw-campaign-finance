@@ -1,5 +1,10 @@
 <?php
-
+/*
+ * As the result from tesseract is not that reliable, this script is not
+ * recommended to use.
+ * 
+ * Currently, Adobe Acrobat ClearScan OCR provides better result.
+ */
 $path = dirname(dirname(__DIR__));
 
 $oh = fopen($path . '/output2.csv', 'r');
