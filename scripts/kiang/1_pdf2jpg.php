@@ -11,6 +11,7 @@
  * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=18707
  */
 $path = dirname(dirname(__DIR__));
+$pathLength = strlen($path);
 $pdfImgPath = $path . '/pdf/img_orig';
 if (!file_exists($pdfImgPath)) {
     mkdir($pdfImgPath, 0777, true);
@@ -19,7 +20,8 @@ $fh = fopen($path . '/pdf/pdf2jpg.csv', 'w');
 fputcsv($fh, array('id', '檔名', '頁數', '網址', '圖寬', '圖高'));
 $fileId = 0;
 foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
-    $fileToken = md5($file);
+    $pdfPath = substr($file, $pathLength + 5);
+    $fileToken = md5($pdfPath);
     $file = addslashes($file);
     $file = str_replace(array(' ', '(', ')'), array('\\ ', '\\(', '\\)'), $file);
     if (!file_exists("{$pdfImgPath}/{$fileToken}-0001.jpg")) {
@@ -42,7 +44,7 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
                 $size[0] = $tmp;
             }
             exec("mv {$jpg} {$fileToken}-{$pageNumber}_l.jpg");
-            fputcsv($fh, array(++$fileId, substr($file, 48), $pageNumber, "{$pdfImgPath}/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
+            fputcsv($fh, array(++$fileId, $pdfPath, $pageNumber, "{$pdfImgPath}/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
         }
         error_log("Finished extracting images from {$file}");
     } else {
