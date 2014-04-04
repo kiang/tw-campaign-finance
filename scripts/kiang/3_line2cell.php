@@ -15,19 +15,19 @@
 
 $path = dirname(dirname(__DIR__));
 
-$oh = fopen($path . '/output2.csv', 'r');
-$firstLineSkipped = false;
+if(!file_exists("{$path}/pdf/cells")) {
+    mkdir("{$path}/pdf/cells", 0777, true);
+}
+
+$oh = fopen($path . '/pdf/pdf2jpg.csv', 'r');
+fgetcsv($oh, 512); //skip first line
 while ($oFile = fgetcsv($oh, 512)) {
     /*
      * $oFile -> id,檔名,頁數,網址,圖寬,圖高
      */
-    if (false === $firstLineSkipped) {
-        $firstLineSkipped = true;
-        continue;
-    }
-    $oJsonFile = "{$path}/outputs2/{$oFile[0]}.json";
+    $oJsonFile = "{$path}/pdf/lines/{$oFile[0]}.json";
     if (!file_exists($oJsonFile)) {
-        die("{$oJsonFile} not exist!\n");
+        continue;
     }
     $oJson = json_decode(file_get_contents($oJsonFile));
     $imageObj = new stdClass();
@@ -67,18 +67,18 @@ while ($oFile = fgetcsv($oh, 512)) {
         }
         $previousLine = $line;
     }
-    file_put_contents("{$path}/cells/{$oFile[0]}.json", json_encode($imageObj));
+    file_put_contents("{$path}/pdf/cells/{$oFile[0]}.json", json_encode($imageObj));
     continue;
     /*
      * to test cropped image
      */
-    $img = imagecreatefrompng($imageObj->url);
+    $img = imagecreatefromjpeg($imageObj->url);
     if (false !== $img) {
         foreach ($imageObj->cells AS $x => $line) {
             foreach ($line AS $y => $cell) {
                 $croppedImg = imagecrop($img, $cell);
                 if (false !== $croppedImg) {
-                    imagepng($croppedImg, "{$path}/cells/{$cell['id']}.png");
+                    imagepng($croppedImg, "{$path}/pdf/cells/{$cell['id']}.png");
                     unset($croppedImg);
                 }
             }
