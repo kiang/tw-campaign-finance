@@ -1,3 +1,9 @@
 scripts/pic2linesjson
 .*.swp
 scripts/*.png
+
+*.zip
+nbproject
+pdf
+project
+target
