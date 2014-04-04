@@ -130,23 +130,24 @@ class Searcher {
         if (!file_exists($input)) {
             throw new Exception("沒有輸入檔");
         }
-        
+
         $finput = fopen($input, 'r');
         fgetcsv($finput); //skip first line
         while ($rows = fgetcsv($finput)) {
             list($id, $file, $page, $url, $width, $height) = $rows;
-            if(file_exists($this->path . '/pdf/lines/' . $id . '.t')) {
+            if (file_exists($this->path . '/pdf/t/2_' . $id)) {
                 //skip files in processing
                 continue;
             } else {
-                file_put_contents($this->path . '/pdf/lines/' . $id . '.t', '1');
+                file_put_contents($this->path . $this->path . '/pdf/t/2_' . $id, '1');
             }
             $this->line_groups = array();
-            
-            if(!file_exists($url)) {
-                echo $url; exit();
+
+            if (!file_exists($url)) {
+                echo $url;
+                exit();
             }
-            
+
             $gd_ori = imagecreatefromjpeg($url);
             error_log('open done - ' . $id);
 
@@ -214,8 +215,8 @@ class Searcher {
                     imagefill($gd, $x, $y, $white);
                 }
             }
-            
-            if(empty($max_point)) {
+
+            if (empty($max_point)) {
                 //略過找不到交點的圖片
                 continue;
             }
@@ -250,7 +251,8 @@ class Searcher {
                             break;
                         }
                         foreach (range(2, -2) as $range) {
-                            if($y + $range <= 0) continue;
+                            if ($y + $range <= 0)
+                                continue;
                             $rgb = imagecolorat($gd, floor($x), floor($y + $range));
                             $colors = imagecolorsforindex($gd, $rgb);
                             if ($colors['red'] == 0 and $colors['green'] == 255 and $colors['blue'] == 0) {
@@ -362,11 +364,6 @@ class Searcher {
             }
             $cross_points = $this->scaleCrossPoints($cross_points, 1.0 / $scale);
 
-            //imagepng($gd, $this->path . '/pdf/output.png');
-            if (count($cross_points) != 10) {
-                file_put_contents($this->path . '/pdf/failed', "Failed: " . count($cross_points) . " " . $url . "\n", FILE_APPEND);
-                continue;
-            }
             $width = imagesx($gd_ori);
             $height = imagesy($gd_ori);
             $ret = new stdClass;
@@ -381,10 +378,15 @@ class Searcher {
 
 }
 
-$path = dirname(dirname(__DIR__));
-$s = new Searcher;
-$s->path = $path;
-if(!file_exists($s->path . '/pdf/lines')) {
-    mkdir($s->path . '/pdf/lines', 0777, true);
+if (!defined('BE_INCLUDED')) {
+    $path = dirname(dirname(__DIR__));
+    $s = new Searcher;
+    $s->path = $path;
+    if (!file_exists($s->path . '/pdf/lines')) {
+        mkdir($s->path . '/pdf/lines', 0777, true);
+    }
+    if (!file_exists($s->path . '/pdf/t')) {
+        mkdir($s->path . '/pdf/t', 0777, true);
+    }
+    $s->main($path . '/pdf/pdf2jpg.csv');
 }
-$s->main($path . '/pdf/pdf2jpg.csv');
