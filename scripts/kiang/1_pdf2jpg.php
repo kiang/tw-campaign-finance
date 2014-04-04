@@ -15,6 +15,13 @@ $fh = fopen($path . '/pdf/pdf2jpg.csv', 'w');
 fputcsv($fh, array('id', '檔名', '頁數', '網址', '圖寬', '圖高'));
 $fileId = 1;
 foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
+    $taskHash = md5($file);
+    if (file_exists($this->path . '/pdf/t/1_' . $taskHash)) {
+        //skip files in processing
+        continue;
+    } else {
+        file_put_contents($this->path . '/pdf/t/1_' . $taskHash, '1');
+    }
     $pathinfo = pathinfo($file);
     $file = addslashes($file);
     $file = str_replace(array(' ', '(', ')'), array('\\ ', '\\(', '\\)'), $file);
@@ -45,7 +52,8 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
         error_log("Finished extracting images from {$file}");
     } else {
         foreach (glob("{$pathinfo['dirname']}/{$pathinfo['filename']}-*.jpg") AS $jpg) {
-            if(substr($jpg, -6) === '_l.jpg') continue;
+            if (substr($jpg, -6) === '_l.jpg')
+                continue;
             $size = getimagesize($jpg);
             if ($size[0] < $size[1]) {
                 $source = imagecreatefromjpeg($jpg);

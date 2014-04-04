@@ -139,7 +139,7 @@ class Searcher {
                 //skip files in processing
                 continue;
             } else {
-                file_put_contents($this->path . $this->path . '/pdf/t/2_' . $id, '1');
+                file_put_contents($this->path . '/pdf/t/2_' . $id, '1');
             }
             $this->line_groups = array();
 
