@@ -38,6 +38,7 @@ while ($oFile = fgetcsv($oh, 512)) {
     $imageObj->width = $oFile[4];
     $imageObj->height = $oFile[5];
     $imageObj->cells = array();
+    $imageObj->cellCount = 0;
     $previousLine = array();
     $numberX = 0;
     foreach ($oJson->cross_points AS $line) {
@@ -54,6 +55,7 @@ while ($oFile = fgetcsv($oh, 512)) {
                 continue;
             }
             ++$numberY;
+            ++$imageObj->cellCount;
             if (!isset($imageObj->cells[$numberX])) {
                 $imageObj->cells[$numberX] = array();
             }
