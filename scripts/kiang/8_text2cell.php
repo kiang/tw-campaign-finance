@@ -2,18 +2,22 @@
 
 $path = dirname(dirname(__DIR__));
 
-$oh = fopen($path . '/output2.csv', 'r');
-$firstLineSkipped = false;
+if(!file_exists($path . '/pdf/cells-text')) {
+    mkdir($path . '/pdf/cells-text', 0777, true);
+}
+
+$oh = fopen($path . '/pdf/pdf2jpg.csv', 'r');
+fgetcsv($oh, 512); // skip first line
 while ($oFile = fgetcsv($oh, 512)) {
     /*
      * $oFile -> id,檔名,頁數,網址,圖寬,圖高
      */
-    if (false === $firstLineSkipped) {
-        $firstLineSkipped = true;
+    echo "processing id - {$oFile[0]}\n";;
+    if(!file_exists($path . '/pdf/cells/' . $oFile[0] . '.json') || !file_exists($path . '/pdf/text-position/' . $oFile[0] . '.csv')) {
         continue;
     }
 
-    $fh = fopen($path . '/text-position/' . $oFile[0] . '.csv', 'r');
+    $fh = fopen($path . '/pdf/text-position/' . $oFile[0] . '.csv', 'r');
     /*
      * Array
       (
@@ -33,7 +37,7 @@ while ($oFile = fgetcsv($oh, 512)) {
     $targetWidth = 842; //pt
     $targetHeight = 595; //pt
 
-    $cells = json_decode(file_get_contents($path . '/cells/' . $oFile[0] . '.json'));
+    $cells = json_decode(file_get_contents($path . '/pdf/cells/' . $oFile[0] . '.json'));
 
     $xRatio = $targetWidth / $cells->width;
     $yRatio = $targetHeight / $cells->height;
@@ -62,5 +66,5 @@ while ($oFile = fgetcsv($oh, 512)) {
         }
     }
     fclose($fh);
-    file_put_contents($path . '/cells-text/' . $oFile[0] . '.json', json_encode($cellText));
+    file_put_contents($path . '/pdf/cells-text/' . $oFile[0] . '.json', json_encode($cellText));
 }
