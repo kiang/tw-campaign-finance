@@ -11,16 +11,19 @@
  * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=18707
  */
 $path = dirname(dirname(__DIR__));
+if (!file_exists($path . '/pdf/t')) {
+    mkdir($path . '/pdf/t', 0777, true);
+}
 $fh = fopen($path . '/pdf/pdf2jpg.csv', 'w');
 fputcsv($fh, array('id', '檔名', '頁數', '網址', '圖寬', '圖高'));
 $fileId = 1;
 foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
     $taskHash = md5($file);
-    if (file_exists($this->path . '/pdf/t/1_' . $taskHash)) {
+    if (file_exists($path . '/pdf/t/1_' . $taskHash)) {
         //skip files in processing
         continue;
     } else {
-        file_put_contents($this->path . '/pdf/t/1_' . $taskHash, '1');
+        file_put_contents($path . '/pdf/t/1_' . $taskHash, '1');
     }
     $pathinfo = pathinfo($file);
     $file = addslashes($file);
