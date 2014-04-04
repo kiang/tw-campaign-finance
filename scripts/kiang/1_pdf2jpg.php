@@ -62,7 +62,7 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
                 $size[1] = $size[0];
                 $size[0] = $tmp;
             }
-            fputcsv($fh, array(++$fileId, substr($file, 48), $pageNumber, $jpg, $size[0], $size[1]));
+            fputcsv($fh, array(++$fileId, substr($file, 48), $pageNumber, "img_orig/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
         }
     }
 }
