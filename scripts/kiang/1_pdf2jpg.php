@@ -45,6 +45,7 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
         error_log("Finished extracting images from {$file}");
     } else {
         foreach (glob("{$pathinfo['dirname']}/{$pathinfo['filename']}-*.jpg") AS $jpg) {
+            if(substr($jpg, -6) === '_l.jpg') continue;
             $size = getimagesize($jpg);
             if ($size[0] < $size[1]) {
                 $source = imagecreatefromjpeg($jpg);
