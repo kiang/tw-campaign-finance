@@ -109,7 +109,7 @@ class Searcher {
                     if ($y < 0 or $y >= $height) {
                         continue;
                     }
-
+                    
                     $rgb = imagecolorat($gd, $x, $y);
                     $colors = imagecolorsforindex($gd, $rgb);
                     if ($colors['red'] == 255 and $colors['green'] == 0 and $colors['blue'] == 0) {
@@ -135,7 +135,6 @@ class Searcher {
         fgetcsv($finput); //skip first line
         while ($rows = fgetcsv($finput)) {
             list($id, $file, $page, $url, $width, $height) = $rows;
-            $url = $this->path . '/pdf/' . $url;
             if (file_exists($this->path . '/pdf/t/2_' . $id)) {
                 //skip files in processing
                 continue;
@@ -145,7 +144,6 @@ class Searcher {
             $this->line_groups = array();
 
             if (!file_exists($url)) {
-                echo $url;
                 exit();
             }
 
@@ -180,8 +178,10 @@ class Searcher {
             $black = imagecolorallocate($gd, 0, 0, 0);
             $white = imagecolorallocate($gd, 255, 255, 255);
 
-            // 從圖正中間往下畫一條垂直線
-
+            /*
+             * 從圖正中間往下畫一條垂直線，將碰到的色塊都填入紅色，找出能夠取得最多鄰接點的
+             *  y 座標，可以假定這個點一定隸屬於某一條橫線
+             */
             $max_count = 0;
             $max_point = array();
 
@@ -347,7 +347,7 @@ class Searcher {
                 if ($max_count < 0.5 * ($bottom_y - $top_y)) {
                     continue;
                 }
-                imageline($gd, $max_points[0][0], $max_points[0][1], $max_points[1][0], $max_points[1][1], $red);
+                //imageline($gd, $max_points[0][0], $max_points[0][1], $max_points[1][0], $max_points[1][1], $red);
                 error_log("{$check_x} {$max_count}");
                 $this->addLine('verticles', $max_r, $max_theta, $width, $height);
             }
@@ -358,11 +358,14 @@ class Searcher {
                 continue;
             }
             $cross_points = $this->getCrossPoints($this->line_groups['verticles'], $this->line_groups['horizons']);
+            /*
             foreach ($cross_points as $line_cross_points) {
                 foreach ($line_cross_points as $cross_point) {
                     imageellipse($gd, $cross_point[0], $cross_point[1], 20, 20, $red);
                 }
             }
+             * 
+             */
             $cross_points = $this->scaleCrossPoints($cross_points, 1.0 / $scale);
 
             $width = imagesx($gd_ori);
