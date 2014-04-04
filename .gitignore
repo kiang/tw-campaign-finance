@@ -7,3 +7,7 @@ nbproject
 pdf/
 tmp/
 *.jpg
+
+# TextPositionExtractor
+project/
+target/
