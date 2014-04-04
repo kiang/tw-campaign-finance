@@ -81,10 +81,10 @@
                 }, 'json');
                 
                 img_data = new Image;
-                img_data.src = data.url;
+                img_data.src = 'http://203.69.90.98/tw-campaign-finance/' + data.url.replace('.jpg', '_l.jpg');
                 img_data.onload = function() {
                     $('#img_canvas').css({
-                        'background': 'url(' + data.url + ')',
+                        'background': 'url(http://203.69.90.98/tw-campaign-finance/' + data.url.replace('.jpg', '_l.jpg') + ')',
                         'background-size': '400px 300px',
                         'width': '400px',
                         'height': '300px'
