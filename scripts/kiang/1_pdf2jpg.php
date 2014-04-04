@@ -19,10 +19,10 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
     $file = addslashes($file);
     $file = str_replace(array(' ', '(', ')'), array('\\ ', '\\(', '\\)'), $file);
     $pathinfo['filename'] = str_replace(array(' ', '(', ')'), array('-', '', ''), $pathinfo['filename']);
-    $firstTargetFile = "{$pathinfo['dirname']}/{$pathinfo['filename']}-1.jpg";
+    $firstTargetFile = "{$pathinfo['dirname']}/{$pathinfo['filename']}-0001.jpg";
     if (!file_exists($firstTargetFile)) {
         error_log("Extracting images from {$file}");
-        exec("gs -dNOPAUSE -sDEVICE=jpeg -sOutputFile={$pathinfo['filename']}-%d.jpg -dJPEGQ=100 -r300x300 -q {$file} -c quit");
+        exec("gs -dNOPAUSE -sDEVICE=jpeg -sOutputFile={$pathinfo['filename']}-%04d.jpg -dJPEGQ=100 -r300x300 -q {$file} -c quit");
         foreach (glob($path . "/{$pathinfo['filename']}-*") AS $jpg) {
             exec("cp {$jpg} {$pathinfo['dirname']}/");
             exec("convert {$jpg} -morphology thicken '1x3>:1,0,1' {$jpg}");
