@@ -135,6 +135,7 @@ class Searcher {
         fgetcsv($finput); //skip first line
         while ($rows = fgetcsv($finput)) {
             list($id, $file, $page, $url, $width, $height) = $rows;
+            $url = "{$this->path}/pdf/{$url}";
             if (file_exists($this->path . '/pdf/t/2_' . $id)) {
                 //skip files in processing
                 continue;
@@ -144,6 +145,7 @@ class Searcher {
             $this->line_groups = array();
 
             if (!file_exists($url)) {
+                echo "{$url}\n";
                 exit();
             }
 
