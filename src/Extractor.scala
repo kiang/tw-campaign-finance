@@ -12,10 +12,10 @@ import java.io._
 case class PDFFile(id: Int, file: String, page: Int)
 
 object Extractor extends App {
-  val lines = Source.fromFile("output.csv").getLines.toList
+  val lines = Source.fromFile("pdf/pdf2jpg.csv").getLines.drop(1).toList
   val files = lines.map(line => {
     val Array(id, file, page) = line.split(",").take(3)
-    
+
     PDFFile(id.toInt, "pdf/" + (if (file.startsWith("\"") && file.endsWith("\"")) file.drop(1).dropRight(1) else file), page.toInt)
     
   })
@@ -23,10 +23,10 @@ object Extractor extends App {
   files.foreach((f: PDFFile) => {
     println(s"processing: ${f.id}")
     val doc = PDDocument.load(f.file)
-    val printer = new PrintTextLocations(new File(s"output/${f.id}.csv"))
+    val printer = new PrintTextLocations(new File(s"pdf/text-position/${f.id}.csv"))
 
     val pages: List[PDPage] = doc.getDocumentCatalog().getAllPages().asScala.toList.asInstanceOf[List[PDPage]]
-    val page = pages(f.page)
+    val page = pages(f.page - 1)
     val contents = page.getContents
     if (contents != null) {
       printer.processStream(page, page.findResources, page.getContents.getStream)
