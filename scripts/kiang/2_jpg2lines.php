@@ -143,6 +143,10 @@ class Searcher {
             }
             $this->line_groups = array();
             
+            if(!file_exists($url)) {
+                echo $url; exit();
+            }
+            
             $gd_ori = imagecreatefromjpeg($url);
             error_log('open done - ' . $id);
 
@@ -246,6 +250,7 @@ class Searcher {
                             break;
                         }
                         foreach (range(2, -2) as $range) {
+                            if($y + $range <= 0) continue;
                             $rgb = imagecolorat($gd, floor($x), floor($y + $range));
                             $colors = imagecolorsforindex($gd, $rgb);
                             if ($colors['red'] == 0 and $colors['green'] == 255 and $colors['blue'] == 0) {
