@@ -49,6 +49,7 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
         error_log("Finished extracting images from {$file}");
     } else {
         foreach (glob("{$pdfImgPath}/{$fileToken}-*") AS $jpg) {
+            if(substr($jpg, -6) === '_l.jpg') continue;
             $dashPos = strrpos($jpg, '-');
             $dotPos = strpos($jpg, '.', $dashPos);
             $pageNumber = substr($jpg, $dashPos + 1, $dotPos - $dashPos - 1);
