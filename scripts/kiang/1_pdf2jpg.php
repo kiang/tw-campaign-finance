@@ -43,7 +43,7 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
                 $size[1] = $size[0];
                 $size[0] = $tmp;
             }
-            exec("mv {$jpg} {$fileToken}-{$pageNumber}_l.jpg");
+            exec("mv {$jpg} {$pdfImgPath}/{$fileToken}-{$pageNumber}_l.jpg");
             fputcsv($fh, array(++$fileId, $pdfPath, $pageNumber, "img_orig/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
         }
         error_log("Finished extracting images from {$file}");
