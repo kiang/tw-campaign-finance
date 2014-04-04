@@ -18,7 +18,7 @@ while ($oFile = fgetcsv($oh, 512)) {
     } else {
         $oJson = json_decode(file_get_contents($oJsonFile));
 
-        $img = imagecreatefromjpeg($oJson->url);
+        $img = imagecreatefromjpeg($path . '/pdf/' . str_replace('.jpg', '_l.jpg', $oJson->url));
         $color = imagecolorallocatealpha($img, 255, 0, 0, 70);
 
         foreach ($oJson->cells AS $line) {
