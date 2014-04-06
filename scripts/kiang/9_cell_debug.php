@@ -184,7 +184,17 @@ $matches = array(
 foreach ($matches AS $xMod => $xStack) {
     foreach ($xStack AS $yMod => $yStack) {
         foreach ($yStack AS $imageId => $cellReference) {
+            $oFile = $oFileStack[$imageId];
+            $lines = array(
+                'width' => $oFile[4],
+                'height' => $oFile[5],
+                'horizons' => array(),
+                'verticles' => array(),
+                'cross_points' => array(),
+            );
+            
             $oJson = json_decode(file_get_contents($path . '/pdf/cells/' . $cellReference . '.json'));
+            $oLines = json_decode(file_get_contents($path . '/pdf/lines/' . $cellReference . '.json'));
             $cellCount = 0;
             foreach ($oJson->cells AS $line) {
                 foreach ($line AS $cell) {
@@ -195,9 +205,19 @@ foreach ($matches AS $xMod => $xStack) {
                     ++$cellCount;
                 }
             }
+            
+            foreach($oLines->cross_points AS $lineKey => $line) {
+                $lines['cross_points'][$lineKey] = array();
+                foreach ($line AS $pointKey => $point) {
+                    $lines['cross_points'][$lineKey][$pointKey] = array(
+                        0 => $point[0] + $xMod,
+                        1 => $point[1] + $yMod,
+                    );
+                }
+            }
 
             $imageObj = new stdClass();
-            $oFile = $oFileStack[$imageId];
+            
             $imageObj->image_id = $imageId;
             $imageObj->document = $oFile[1];
             $imageObj->page_no = $oFile[2];
@@ -207,6 +227,7 @@ foreach ($matches AS $xMod => $xStack) {
             $imageObj->cells = $oJson->cells;
             $imageObj->cellCount = $cellCount;
             file_put_contents($path . '/pdf/cells/' . $imageId . '.json', json_encode($imageObj));
+            file_put_contents($path . '/pdf/lines/' . $imageId . '.json', json_encode($lines));
         }
     }
 }
