@@ -185,30 +185,27 @@ foreach ($matches AS $xMod => $xStack) {
     foreach ($xStack AS $yMod => $yStack) {
         foreach ($yStack AS $imageId => $cellReference) {
             $oJson = json_decode(file_get_contents($path . '/pdf/cells/' . $cellReference . '.json'));
+            $cellCount = 0;
             foreach ($oJson->cells AS $line) {
                 foreach ($line AS $cell) {
                     $cell->id = (string) $cell->id;
                     $cell->id = $imageId . substr($cell->id, strpos($cell->id, '-'));
                     $cell->x += $xMod;
                     $cell->y += $yMod;
+                    ++$cellCount;
                 }
             }
 
-            if (file_exists($path . '/pdf/cells/' . $imageId . '.json')) {
-                $imageObj = json_decode(file_get_contents($path . '/pdf/cells/' . $imageId . '.json'));
-                $imageObj->cells = $oJson->cells;
-            } else {
-                $imageObj = new stdClass();
-                $oFile = $oFileStack[$imageId];
-                $imageObj->image_id = $imageId;
-                $imageObj->document = $oFile[1];
-                $imageObj->page_no = $oFile[2];
-                $imageObj->url = $oFile[3];
-                $imageObj->width = $oFile[4];
-                $imageObj->height = $oFile[5];
-                $imageObj->cells = $oJson->cells;
-                $imageObj->cellCount = 189;
-            }
+            $imageObj = new stdClass();
+            $oFile = $oFileStack[$imageId];
+            $imageObj->image_id = $imageId;
+            $imageObj->document = $oFile[1];
+            $imageObj->page_no = $oFile[2];
+            $imageObj->url = $oFile[3];
+            $imageObj->width = $oFile[4];
+            $imageObj->height = $oFile[5];
+            $imageObj->cells = $oJson->cells;
+            $imageObj->cellCount = $cellCount;
             file_put_contents($path . '/pdf/cells/' . $imageId . '.json', json_encode($imageObj));
         }
     }
