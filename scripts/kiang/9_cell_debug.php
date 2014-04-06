@@ -2,6 +2,9 @@
 
 $path = dirname(dirname(__DIR__));
 
+define('BE_INCLUDED', true);
+include_once $path . '/scripts/kiang/2_jpg2lines.php';
+
 $imgPath = $path . '/pdf/img_review';
 
 $oh = fopen($path . '/pdf/pdf2jpg.csv', 'r');
@@ -56,6 +59,17 @@ if (!file_exists($path . '/pdf/t/9_cellCount_189')) {
         fclose($fh);
     }
 }
+
+$rotateImages = $newLineStack = array('152', '2554');
+if (!file_exists($path . '/pdf/t/9_image_rotated')) {
+    foreach ($rotateImages AS $rotateImage) {
+        $source = imagecreatefromjpeg($path . '/pdf/' . $oFileStack[$rotateImage][3]);
+        $rotate = imagerotate($source, 180, 0);
+        imagejpeg($rotate, $path . '/pdf/' . $oFileStack[$rotateImage][3]);
+    }
+    file_put_contents($path . '/pdf/t/9_image_rotated', '1');
+}
+
 
 $matches = array(
     0 => array(
@@ -192,7 +206,7 @@ foreach ($matches AS $xMod => $xStack) {
                 'verticles' => array(),
                 'cross_points' => array(),
             );
-            
+
             $oJson = json_decode(file_get_contents($path . '/pdf/cells/' . $cellReference . '.json'));
             $oLines = json_decode(file_get_contents($path . '/pdf/lines/' . $cellReference . '.json'));
             $cellCount = 0;
@@ -205,8 +219,8 @@ foreach ($matches AS $xMod => $xStack) {
                     ++$cellCount;
                 }
             }
-            
-            foreach($oLines->cross_points AS $lineKey => $line) {
+
+            foreach ($oLines->cross_points AS $lineKey => $line) {
                 $lines['cross_points'][$lineKey] = array();
                 foreach ($line AS $pointKey => $point) {
                     $lines['cross_points'][$lineKey][$pointKey] = array(
@@ -217,7 +231,7 @@ foreach ($matches AS $xMod => $xStack) {
             }
 
             $imageObj = new stdClass();
-            
+
             $imageObj->image_id = $imageId;
             $imageObj->document = $oFile[1];
             $imageObj->page_no = $oFile[2];
@@ -231,6 +245,23 @@ foreach ($matches AS $xMod => $xStack) {
         }
     }
 }
+
+$fh = fopen($path . '/pdf/cell_debug.csv', 'w');
+fputcsv($fh, array(1, 2, 3, 4, 5, 6));
+foreach ($newLineStack AS $newLine) {
+    fputcsv($fh, $oFileStack[$newLine]);
+}
+fclose($fh);
+
+$s = new Searcher;
+$s->path = $path;
+if (!file_exists($s->path . '/pdf/lines')) {
+    mkdir($s->path . '/pdf/lines', 0777, true);
+}
+if (!file_exists($s->path . '/pdf/t')) {
+    mkdir($s->path . '/pdf/t', 0777, true);
+}
+$s->main($path . '/pdf/cell_debug.csv');
 
 exit();
 
