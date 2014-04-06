@@ -14,19 +14,46 @@ while ($oFile = fgetcsv($oh, 512)) {
      */
     $oJsonFile = "{$path}/pdf/cells/{$oFile[0]}.json";
     if (!file_exists($oJsonFile)) {
-        copy($oFile[3], $imgPath . '/' . $oFile[0] . '.jpg');
+        echo "{$oJsonFile}\n";
     } else {
         $oJson = json_decode(file_get_contents($oJsonFile));
 
         $img = imagecreatefromjpeg($path . '/pdf/' . str_replace('.jpg', '_l.jpg', $oJson->url));
-        $color = imagecolorallocatealpha($img, 255, 0, 0, 70);
+        
+        /*
+         * 
+         * create thumbnails
+         * 
+        $newwidth = 600;
+        $newheight = round($oJson->height * 600 / $oJson->width);
+        $thumb = imagecreatetruecolor($newwidth, $newheight);
+        imagecopyresized($thumb, $img, 0, 0, 0, 0, $newwidth, $newheight, $oJson->width, $oJson->height);
+        
+        imagejpeg($thumb, $imgPath . '/' . $oFile[0] . '.jpg');
+        continue;
+         * 
+         */
+
+        $colorA = imagecolorallocatealpha($img, 155, 0, 0, 70);
+        $colorB = imagecolorallocatealpha($img, 0, 155, 0, 70);
+        $colorC = imagecolorallocatealpha($img, 0, 0, 155, 70);
+        $cellCount = 0;
 
         foreach ($oJson->cells AS $line) {
             foreach ($line AS $cell) {
-                imagefilledrectangle($img, $cell->x, $cell->y, $cell->x + $cell->width, $cell->y + $cell->height, $color);
+                switch (++$cellCount % 2) {
+                    case 1:
+                        imagefilledrectangle($img, $cell->x, $cell->y, $cell->x + $cell->width, $cell->y + $cell->height, $colorA);
+                        break;
+                    case 2:
+                        imagefilledrectangle($img, $cell->x, $cell->y, $cell->x + $cell->width, $cell->y + $cell->height, $colorB);
+                        break;
+                    case 0:
+                        imagefilledrectangle($img, $cell->x, $cell->y, $cell->x + $cell->width, $cell->y + $cell->height, $colorC);
+                        break;
+                }
             }
         }
-
         imagejpeg($img, $imgPath . '/' . $oFile[0] . '.jpg');
     }
 }
