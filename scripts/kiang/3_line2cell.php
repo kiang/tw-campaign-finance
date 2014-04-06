@@ -15,7 +15,7 @@
 
 $path = dirname(dirname(__DIR__));
 
-if(!file_exists("{$path}/pdf/cells")) {
+if (!file_exists("{$path}/pdf/cells")) {
     mkdir("{$path}/pdf/cells", 0777, true);
 }
 
@@ -27,7 +27,13 @@ while ($oFile = fgetcsv($oh, 512)) {
      */
     $oJsonFile = "{$path}/pdf/lines/{$oFile[0]}.json";
     if (!file_exists($oJsonFile)) {
-        continue;
+        file_put_contents($oJsonFile, json_encode(array(
+            'width' => $oFile[4],
+            'height' => $oFile[5],
+            'horizons' => array(),
+            'verticles' => array(),
+            'cross_points' => array(),
+        )));
     }
     $oJson = json_decode(file_get_contents($oJsonFile));
     $imageObj = new stdClass();
@@ -41,33 +47,35 @@ while ($oFile = fgetcsv($oh, 512)) {
     $imageObj->cellCount = 0;
     $previousLine = array();
     $numberX = 0;
-    foreach ($oJson->cross_points AS $line) {
-        if (empty($previousLine)) {
-            $previousLine = $line;
-            continue;
-        }
-        ++$numberX;
-        $numberY = 0;
-        $firstPointSkipped = false;
-        foreach ($line AS $key => $point) {
-            if (false === $firstPointSkipped) {
-                $firstPointSkipped = true;
+    if (!empty($oJson->cross_points)) {
+        foreach ($oJson->cross_points AS $line) {
+            if (empty($previousLine)) {
+                $previousLine = $line;
                 continue;
             }
-            ++$numberY;
-            ++$imageObj->cellCount;
-            if (!isset($imageObj->cells[$numberX])) {
-                $imageObj->cells[$numberX] = array();
+            ++$numberX;
+            $numberY = 0;
+            $firstPointSkipped = false;
+            foreach ($line AS $key => $point) {
+                if (false === $firstPointSkipped) {
+                    $firstPointSkipped = true;
+                    continue;
+                }
+                ++$numberY;
+                ++$imageObj->cellCount;
+                if (!isset($imageObj->cells[$numberX])) {
+                    $imageObj->cells[$numberX] = array();
+                }
+                $imageObj->cells[$numberX][$numberY] = array(
+                    'id' => "{$oFile[0]}-{$numberY}-{$numberX}",
+                    'x' => $previousLine[$key - 1][0],
+                    'y' => $previousLine[$key - 1][1],
+                    'width' => ($line[$key][0] - $previousLine[$key - 1][0]),
+                    'height' => ($line[$key][1] - $previousLine[$key - 1][1]),
+                );
             }
-            $imageObj->cells[$numberX][$numberY] = array(
-                'id' => "{$oFile[0]}-{$numberY}-{$numberX}",
-                'x' => $previousLine[$key - 1][0],
-                'y' => $previousLine[$key - 1][1],
-                'width' => ($line[$key][0] - $previousLine[$key - 1][0]),
-                'height' => ($line[$key][1] - $previousLine[$key - 1][1]),
-            );
+            $previousLine = $line;
         }
-        $previousLine = $line;
     }
     file_put_contents("{$path}/pdf/cells/{$oFile[0]}.json", json_encode($imageObj));
     continue;
