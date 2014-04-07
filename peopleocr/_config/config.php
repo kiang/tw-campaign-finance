@@ -62,7 +62,7 @@
 		$db_hostname="localhost"; $db_username="jellyhttp"; $db_password="19820115"; $db_database="twcampaignfinance";
 	}else{
 		//$db_hostname="localhost"; $db_username="gun3com_main2013"; $db_password="e2JOsQQTmMNd"; $db_database="gun3com_main2013blimp";	
-		$db_hostname="localhost"; $db_username="gun3com_maintest"; $db_password="5U8,DDVy1~XW"; $db_database="gun3com_maintest";		
+		$db_hostname="localhost"; $db_username="twcampaignfinance"; $db_password="twcampaignfinance"; $db_database="twcampaignfinance";		
 	}
 	
 	//測試 ip 略過權限管理 正式主機需移除 , 設定略過權限判斷的測試頁面或介接系統頁面
