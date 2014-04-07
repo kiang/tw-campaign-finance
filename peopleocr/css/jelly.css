@@ -1,0 +1,29 @@
+
+.listgrid .row{}
+.listgrid .row > [class*="grid"] > span {
+    display: block;
+    font-size: 12px;
+    line-height: 20px;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.listgrid [class*="grid"] {
+    
+}
+
+
+
+
+.filepages li{ float: left; margin: 5px;}
+
+.detail_table td{ border: 1px solid #000;}
+.detail_table td input{ margin: 0px;}
+
+.detail_preview{ position: absolute; z-index: 4000;  }
+.detail_preview .preview_box{ position: relative; }
+.detail_preview .preview_box img{ position: absolute; top: 0px; left: 0px; width: 400px; height: 300px;}
+.detail_preview .preview_box canvas{ position: absolute; top: 0px; left: 0px; width: 400px; height: 300px; }
+
+.detail_ocr{ position: absolute; z-index: 5000;}
+

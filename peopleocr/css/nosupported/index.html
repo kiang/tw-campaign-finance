@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"">
+<html lang="zh-TW" xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" charset="utf-8" />
+        <meta http-equiv="Content-Language" content="zh-TW" />
+        <meta name="Robots" content="all" />
+        <meta name="Author" content="Kei™/kei.tw" />
+        <title>Your Browser is not supported!</title>
+        <link rel="stylesheet" media="screen" href="css/nosupported.css" />
+    </head>
+    <body>
+        <div class="notice">
+            <div class="text">
+                <p>您正在使用一個過時且具安全性問題的瀏覽器。您可以從以下列表選擇更新或者更換您的瀏覽器，讓您有著更好的網站體驗與安全性。如果您的作業系統是Windows XP或者更舊的版本，我們建議您選擇安裝Google Chrome 或是 Mozilla Firefox</p>
+            </div>
+            <div class="explorer">
+                <ul>
+                    <li style="background-image: url(css/img/browser_chrome.gif)"><a href="http://www.google.com/chrome" target="_blank">Chrome 23+</a></li>
+                    <li style="background-image: url(css/img/browser_firefox.gif)"><a href="http://www.mozilla.org/en-US/" target="_blank">Firefox 17+</a></li>
+                    <li id="IE" style="background-image: url(css/img/browser_ie.gif)"><a href="http://windows.microsoft.com/en-US/internet-explorer/products/ie/home" target="_blank">IE 9+</a></li>
+                </ul>
+            </div>
+        </div>
+		<script type="text/javascript">
+            var ua = navigator.userAgent.toLowerCase();
+            var win = /windows nt/.test(ua);
+            
+            if(win){
+                var osname = "windows nt";
+                var os = ua.indexOf(osname);
+                var start = parseInt(os, 10) + osname.length + 1;
+                var end = start+3;
+                var version = parseFloat(ua.substring(start, end)) * 10;
+                var defaultOs = 60;
+                var ul = document.getElementById('list');
+                
+                if(defaultOs > version){
+                    ul.setAttribute("class", "noIE");
+                }else {
+                    ul.setAttribute("class", "hasIE");
+                }
+            }
+        </script>
+    </body>
+</html>
