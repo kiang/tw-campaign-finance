@@ -11,3 +11,5 @@ tmp/
 # TextPositionExtractor
 project/
 target/
+
+peopleocr/kiang/*.bak
