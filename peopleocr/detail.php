@@ -104,7 +104,7 @@ function log_events(event, data) {
     }
     if(event == "afterChange"){
         var senddata = {};
-        senddata.data = data[0];
+        senddata.data = data;
         //console.info(data); data 應該是多筆陣列
         $.ajax({
             url:'ajax.php',
