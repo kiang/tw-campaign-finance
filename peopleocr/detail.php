@@ -31,8 +31,8 @@
 <?php include_once("./incl/setting.php");?>
 <title>title</title>
 
-<link rel="stylesheet" href="./js/handsontable/dist/jquery.handsontable.full.css" />
-<script type="text/javascript" src="./js/handsontable/dist/jquery.handsontable.full.js"></script>
+<link rel="stylesheet" href="./js/handsontable/jquery.handsontable.full.css" />
+<script type="text/javascript" src="./js/handsontable/jquery.handsontable.full.js"></script>
 <script type="text/javascript" src="./js/json2.min.js"></script>
 
 </head>
@@ -75,6 +75,8 @@ $(function(){
     //設定 handsontable
     var handsontable_config = {
         data: handsontable_data,
+        minRows: <?=$file['filRows'] - 1;?>,
+        minCols: <?=$file['filCols'] - 1;?>,        
         contextMenu: true
     };
     //定義 handsontable 事件
@@ -103,6 +105,7 @@ function log_events(event, data) {
     if(event == "afterChange"){
         var senddata = {};
         senddata.data = data[0];
+        //console.info(data); data 應該是多筆陣列
         $.ajax({
             url:'ajax.php',
             type:'POST', //POST GET
