@@ -3,23 +3,44 @@
     $rep = returnpost($_POST);
 
     if($_POST['act'] == "save_field"){
+        $re = array();
         $fileds = $rep['data']['data'][0];
         foreach ($fileds as $key => $filed) {
-            print_r($filed);
+            //print_r($filed);
             $filSno = $rep['id'];
             $fidRow = $filed[0] * 1 + 1;
             $fidCol = $filed[1] * 1 + 1;
             $fidValue = $filed[3];
 
-            $sql = "update ".__table_prefix."filefields set 
-            fidValue = '".$fidValue."' 
+            //先判段有沒有值
+            $sql = "select count(fidSno) from ".__table_prefix."filefields 
             where 
             filSno = '".$filSno."' and 
             fidRow = '".$fidRow."' and 
             fidCol = '".$fidCol."' ";
+            $has = mysql_result (myquery($sql), 0);
+
+            if($has){
+                $sql = "update ".__table_prefix."filefields set 
+                fidValue = '".$fidValue."' 
+                where 
+                filSno = '".$filSno."' and 
+                fidRow = '".$fidRow."' and 
+                fidCol = '".$fidCol."' ";
+            }else{  
+                $sql = "insert into ".__table_prefix."filefields set 
+                filSno = '".$filSno."' , 
+                fidRow = '".$fidRow."' , 
+                fidCol = '".$fidCol."' , 
+                fidValue = '".$fidValue."' ";
+            }
+
+            $re['sql'][] = $sql;
 
             myquery($sql);
+
         }
+        echo json_encode($re);
     }
     if($_GET['act'] == "getdata"){
         $data = array();

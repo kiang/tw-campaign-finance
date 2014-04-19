@@ -112,7 +112,7 @@ function log_events(event, data) {
             dataType:'json', //html json jsonp script text
             data:{'act':'save_field', 'id':<?=$_GET['id'];?>, 'data':senddata},
             success:function(res){ //ajaxStart : beforeSend ajaxSend success ajaxSuccess error ajaxError complete ajaxComplete ; ajaxStop 
-                //console.info(res);
+                //console.log(res);
             }
         });
     }
