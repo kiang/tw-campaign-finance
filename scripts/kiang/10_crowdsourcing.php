@@ -47,12 +47,14 @@ fgetcsv($oh, 512); // skip first line
   )
  */
 $cellText = array();
+$toRemoved = array();
 while ($line = fgetcsv($oh, 1024)) {
     $pageNumber = str_pad($line[1] + 1, 4, '0', STR_PAD_LEFT);
     if (!isset($pages[$line[0]][$pageNumber])) {
         print_r($line);
         exit();
     } else {
+        $toRemoved[$line[0]] = 1;
         $pageId = $pages[$line[0]][$pageNumber];
         if(!isset($line[12])) {
             print_r($line); exit();
@@ -76,3 +78,9 @@ fclose($oh);
 foreach($cellText AS $pageId => $pageData) {
     file_put_contents($path . '/pdf/cells-text/' . $pageId . '.json', json_encode($pageData));
 }
+
+foreach(array_keys($toRemoved) AS $doc) {
+    unset($pages[$doc]);
+}
+
+print_r(array_keys($pages));
