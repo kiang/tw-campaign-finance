@@ -33,7 +33,7 @@
 
             var files = {};
 
-            $.get('output2.csv', function(ret) {
+            $.get('pdf2jpg.csv', function(ret) {
                 var lines = ret.split("\n");
                 $.each(lines.slice(1), function(i, line) {
                     if (line === '') {
@@ -76,20 +76,20 @@
 
                 ocr_text = {};
 
-                $.get('cells-text/' + id + '.json', {}, function(ret) {
+                $.get('pdf/cells-text/' + id + '.json', {}, function(ret) {
                     ocr_text = ret;
                 }, 'json');
                 
                 img_data = new Image;
-                img_data.src = data.url;
+                img_data.src = 'http://203.69.90.98/tw-campaign-finance/' + data.url;
                 img_data.onload = function() {
                     $('#img_canvas').css({
-                        'background': 'url(' + data.url + ')',
+                        'background': 'http://203.69.90.98/tw-campaign-finance/' + data.url,
                         'background-size': '400px 300px',
                         'width': '400px',
                         'height': '300px'
                     });
-                    $.get('outputs2/' + id + '.json', function(ret) {
+                    $.get('lines/' + id + '.json', function(ret) {
                         img_info = ret;
                         $('#board').show();
                         $('#table').empty();
