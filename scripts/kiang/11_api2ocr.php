@@ -77,7 +77,7 @@ function processAnsFile($fh, $tAns, $pageId) {
     $ansJson = json_decode(file_get_contents($tAns), true);
     foreach ($ansJson['recognitions'] AS $ans) {
         $ans['result'] = trim($ans['result']);
-        if (!empty($ans['result'])) {
+        if (!empty($ans['result']) && $ans['result'] !== 'none') {
             fputcsv($fh, array($pageId, $ans['row'], $ans['column'], $ans['result']));
         }
     }
