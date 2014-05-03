@@ -32,7 +32,7 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
             $dotPos = strpos($jpg, '.', $dashPos);
             $pageNumber = substr($jpg, $dashPos + 1, $dotPos - $dashPos - 1);
             //copy($jpg, "{$pdfImgPath}/{$fileToken}-{$pageNumber}.jpg");
-            exec("convert -morphology thicken '1x3>:1,0,1' -normalize -gaussian-blur 1x3 -threshold 60% {$jpg} {$jpg}");
+            exec("convert -morphology thicken '1x3>:1,0,1' -threshold 70% {$jpg} {$jpg}");
             $size = getimagesize($jpg);
             if ($size[0] < $size[1]) {
                 $source = imagecreatefromjpeg($jpg);
