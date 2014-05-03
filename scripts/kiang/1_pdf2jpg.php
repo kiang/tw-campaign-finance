@@ -31,9 +31,8 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
             $dashPos = strrpos($jpg, '-');
             $dotPos = strpos($jpg, '.', $dashPos);
             $pageNumber = substr($jpg, $dashPos + 1, $dotPos - $dashPos - 1);
-            copy($jpg, "{$pdfImgPath}/{$fileToken}-{$pageNumber}.jpg");
-            exec("convert {$jpg} -morphology thicken '1x3>:1,0,1' {$jpg}");
-            exec("convert {$jpg} -morphology thicken '1x3>:1,0,1' {$jpg}");
+            //copy($jpg, "{$pdfImgPath}/{$fileToken}-{$pageNumber}.jpg");
+            exec("convert -morphology thicken '1x3>:1,0,1' -normalize -gaussian-blur 1x3 -threshold 60% {$jpg} {$jpg}");
             $size = getimagesize($jpg);
             if ($size[0] < $size[1]) {
                 $source = imagecreatefromjpeg($jpg);
@@ -43,7 +42,7 @@ foreach (glob($path . '/pdf/*/*/*.pdf') AS $file) {
                 $size[1] = $size[0];
                 $size[0] = $tmp;
             }
-            exec("mv {$jpg} {$pdfImgPath}/{$fileToken}-{$pageNumber}_l.jpg");
+            exec("mv {$jpg} {$pdfImgPath}/{$fileToken}-{$pageNumber}.jpg");
             fputcsv($fh, array(++$fileId, $pdfPath, $pageNumber, "img_orig/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
         }
         error_log("Finished extracting images from {$file}");
