@@ -17,56 +17,21 @@ if (!file_exists($pdfImgPath)) {
     mkdir($pdfImgPath, 0777, true);
 }
 
+$rotateMap = array();
+$rotateMapFile = $path . '/pdf/rotateMap.csv';
+if (file_exists($rotateMapFile)) {
+    $list = explode("\n", file_get_contents($rotateMapFile));
+    foreach ($list AS $item) {
+        $item = trim($item);
+        if(empty($item)) continue;
+        $rotateMap[$item] = true;
+    }
+}
+
 $fh = fopen($path . '/pdf/pdf2jpg.csv', 'w');
 fputcsv($fh, array('id', '檔名', '頁數', '網址', '圖寬', '圖高'));
 $fileId = 0;
 $pageNumbers = array();
-//width = 3525
-foreach (glob($path . '/pdf/src/*/*.tif') AS $file) {
-    $pageIndex = dirname($file);
-    $fileToken = md5($pageIndex);
-    if (!isset($pageNumbers[$pageIndex])) {
-        $pageNumbers[$pageIndex] = 1;
-    } else {
-        ++$pageNumbers[$pageIndex];
-    }
-    $pageNumber = str_pad($pageNumbers[$pageIndex], 4, '0', STR_PAD_LEFT);
-    $jpg = "{$path}/pdf/img_orig/{$fileToken}-{$pageNumber}.jpg";
-    exec("convert {$file} -resize 3525x3525 -quiet -morphology thicken '1x3>:1,0,1' -threshold 70% {$jpg}");
-    $size = getimagesize($jpg);
-    if ($size[0] < $size[1]) {
-        $source = imagecreatefromjpeg($jpg);
-        $rotate = imagerotate($source, 270, 0);
-        imagejpeg($rotate, $jpg);
-        $tmp = $size[1];
-        $size[1] = $size[0];
-        $size[0] = $tmp;
-    }
-    fputcsv($fh, array(++$fileId, substr($file, 48), $pageNumber, "img_orig/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
-}
-//width = 3525
-foreach (glob($path . '/pdf/src/*/*.jpg') AS $file) {
-    $pageIndex = dirname($file);
-    $fileToken = md5($pageIndex);
-    if (!isset($pageNumbers[$pageIndex])) {
-        $pageNumbers[$pageIndex] = 1;
-    } else {
-        ++$pageNumbers[$pageIndex];
-    }
-    $pageNumber = str_pad($pageNumbers[$pageIndex], 4, '0', STR_PAD_LEFT);
-    $jpg = "{$path}/pdf/img_orig/{$fileToken}-{$pageNumber}.jpg";
-    exec("convert -resize 3525x3525 -quiet -morphology thicken '1x3>:1,0,1' -threshold 70% {$file} {$jpg}");
-    $size = getimagesize($jpg);
-    if ($size[0] < $size[1]) {
-        $source = imagecreatefromjpeg($jpg);
-        $rotate = imagerotate($source, 270, 0);
-        imagejpeg($rotate, $jpg);
-        $tmp = $size[1];
-        $size[1] = $size[0];
-        $size[0] = $tmp;
-    }
-    fputcsv($fh, array(++$fileId, substr($file, 48), $pageNumber, "img_orig/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
-}
 foreach (glob($path . '/pdf/src/*/*.pdf') AS $file) {
     $pdfPath = substr($file, $pathLength + 5);
     $fileToken = md5($pdfPath);
@@ -111,4 +76,61 @@ foreach (glob($path . '/pdf/src/*/*.pdf') AS $file) {
         }
     }
 }
+//width = 3525
+foreach (glob($path . '/pdf/src/*/*.tif') AS $file) {
+    $csvFilePath = substr($file, 48);
+    $pageIndex = dirname($file);
+    $fileToken = md5($pageIndex);
+    if (!isset($pageNumbers[$pageIndex])) {
+        $pageNumbers[$pageIndex] = 1;
+    } else {
+        ++$pageNumbers[$pageIndex];
+    }
+    $pageNumber = str_pad($pageNumbers[$pageIndex], 4, '0', STR_PAD_LEFT);
+    $jpg = "{$path}/pdf/img_orig/{$fileToken}-{$pageNumber}.jpg";
+    exec("convert {$file} -resize 3525x3525 -quiet -morphology thicken '1x3>:1,0,1' -threshold 70% {$jpg}");
+    $size = getimagesize($jpg);
+    if ($size[0] < $size[1]) {
+        $source = imagecreatefromjpeg($jpg);
+        if (isset($rotateMap[$csvFilePath])) {
+            $rotate = imagerotate($source, 90, 0);
+        } else {
+            $rotate = imagerotate($source, 270, 0);
+        }
+        imagejpeg($rotate, $jpg);
+        $tmp = $size[1];
+        $size[1] = $size[0];
+        $size[0] = $tmp;
+    }
+    fputcsv($fh, array(++$fileId, $csvFilePath, $pageNumber, "img_orig/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
+}
+//width = 3525
+foreach (glob($path . '/pdf/src/*/*.jpg') AS $file) {
+    $csvFilePath = substr($file, 48);
+    $pageIndex = dirname($file);
+    $fileToken = md5($pageIndex);
+    if (!isset($pageNumbers[$pageIndex])) {
+        $pageNumbers[$pageIndex] = 1;
+    } else {
+        ++$pageNumbers[$pageIndex];
+    }
+    $pageNumber = str_pad($pageNumbers[$pageIndex], 4, '0', STR_PAD_LEFT);
+    $jpg = "{$path}/pdf/img_orig/{$fileToken}-{$pageNumber}.jpg";
+    exec("convert -resize 3525x3525 -quiet -morphology thicken '1x3>:1,0,1' -threshold 70% {$file} {$jpg}");
+    $size = getimagesize($jpg);
+    if ($size[0] < $size[1]) {
+        $source = imagecreatefromjpeg($jpg);
+        if (isset($rotateMap[$csvFilePath])) {
+            $rotate = imagerotate($source, 90, 0);
+        } else {
+            $rotate = imagerotate($source, 270, 0);
+        }
+        imagejpeg($rotate, $jpg);
+        $tmp = $size[1];
+        $size[1] = $size[0];
+        $size[0] = $tmp;
+    }
+    fputcsv($fh, array(++$fileId, $csvFilePath, $pageNumber, "img_orig/{$fileToken}-{$pageNumber}.jpg", $size[0], $size[1]));
+}
+
 fclose($fh);
