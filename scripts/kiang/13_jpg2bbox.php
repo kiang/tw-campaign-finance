@@ -17,7 +17,7 @@ while ($oFile = fgetcsv($oh, 512)) {
      * $oFile -> id,檔名,頁數,網址,圖寬,圖高
      */
     $imgPath = "{$imgBasePath}{$oFile[3]}";
-    //exec("/usr/bin/tesseract {$imgPath} {$bboxPath}/{$oFile[0]} hocr");
+    exec("/usr/bin/tesseract {$imgPath} {$bboxPath}/{$oFile[0]} -l chi_tra hocr");
     if (file_exists("{$bboxPath}/{$oFile[0]}.html")) {
 
         $content = file_get_contents("{$bboxPath}/{$oFile[0]}.html");
