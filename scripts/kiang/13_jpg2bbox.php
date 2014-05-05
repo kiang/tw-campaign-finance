@@ -18,9 +18,9 @@ while ($oFile = fgetcsv($oh, 512)) {
      */
     $imgPath = "{$imgBasePath}{$oFile[3]}";
     exec("/usr/bin/tesseract {$imgPath} {$bboxPath}/{$oFile[0]} -l chi_tra hocr");
-    if (file_exists("{$bboxPath}/{$oFile[0]}.html")) {
+    if (file_exists("{$bboxPath}/{$oFile[0]}.hocr")) {
 
-        $content = file_get_contents("{$bboxPath}/{$oFile[0]}.html");
+        $content = file_get_contents("{$bboxPath}/{$oFile[0]}.hocr");
         $bboxStack = array();
 
         $lineOffset = strpos($content, $bboxKey);
@@ -31,6 +31,7 @@ while ($oFile = fgetcsv($oh, 512)) {
             $bboxEnd = strpos($content, '"', $bboxOffset);
             //bbox x0 y0 x1 y1 , ref http://en.wikipedia.org/wiki/HOCR
             $bbox = explode(' ', substr($content, $bboxOffset, $bboxEnd - $bboxOffset));
+            $bbox[3] = intval($bbox[3]);
             $bboxStack[] = $bbox;
             if($lx > $bbox[0]) {
                 $lx = $bbox[0];
